@@ -1,13 +1,12 @@
-package client.model;
+package common.player;
 
 import common.enums.Direction;
 
-public class Monster {
+public class Player {
     private String id;
-    private String type;
     private int x;
     private int y;
-    private String state;
+    private String state; // "idle", "move", "jump"
     private Direction direction;
 
     public String getId() {
@@ -16,14 +15,6 @@ public class Monster {
 
     public void setId(String id) {
         this.id = id;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
     }
 
     public int getX() {

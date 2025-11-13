@@ -1,8 +1,8 @@
 package client.view;
 
 import client.util.SpriteManager;
-import client.model.Monster;
-import client.model.Player;
+import common.monster.Monster;
+import common.player.Player;
 import common.skills.Skill;
 
 import java.awt.Color;
@@ -32,15 +32,16 @@ public class GameRenderer {
     }
 
     private static void renderMonsters(Graphics g, List<Monster> monsters) {
-        Image monsterSprite = SpriteManager.getSprite("monster");
         for (Monster monster : monsters) {
+            String name = monster.getName();
+            Image monsterSprite = SpriteManager.getSprite(name);
+
             if (monsterSprite != null) {
                 g.drawImage(monsterSprite, monster.getX(), monster.getY(), 30, 30, null);
             } else {
-                g.setColor(Color.RED);
-                g.fillRect(monster.getX(), monster.getY(), 30, 30);
+                System.err.println(name+"의 이미지를 불러오는데 실패했습니다.");
             }
-            g.drawString(monster.getId(), monster.getX(), monster.getY() - 5);
+            g.drawString(monster.getName()+monster.getId(), monster.getX(), monster.getY() - 5);
         }
     }
 

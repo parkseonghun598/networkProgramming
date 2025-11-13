@@ -1,7 +1,7 @@
 package server.util;
 
-import client.model.Monster;
-import client.model.Player;
+import common.monster.Monster;
+import common.player.Player;
 import common.skills.Skill;
 import java.util.List;
 
@@ -33,8 +33,8 @@ public class GameStateSerializer {
     private static void appendMonsters(StringBuilder sb, List<Monster> monsters) {
         sb.append(",\"monsters\":[");
         for (Monster m : monsters) {
-            sb.append(String.format("{\"id\":\"%s\",\"type\":\"%s\",\"x\":%d,\"y\":%d}",
-                m.getId(), m.getType(), m.getX(), m.getY()));
+            sb.append(String.format("{\"id\":\"%s\",\"name\":\"%s\",\"type\":\"%s\",\"x\":%d,\"y\":%d}",
+                m.getId(), m.getName(), m.getType(), m.getX(), m.getY()));
             sb.append(",");
         }
         if (!monsters.isEmpty()) {

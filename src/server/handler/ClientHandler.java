@@ -1,6 +1,6 @@
 package server.handler;
 
-import client.model.Player;
+import common.player.Player;
 import common.skills.Skill;
 import common.skills.Skill1;
 import server.core.GameState;
@@ -19,12 +19,14 @@ public class ClientHandler implements Runnable {
     private final GameState gameState;
     private PrintWriter out;
     private BufferedReader in;
-    private String playerId;
+    private final String playerId;
+    private final SkillCreator skillCreator;
 
     public ClientHandler(Socket socket, GameState gameState) {
         this.clientSocket = socket;
         this.gameState = gameState;
         this.playerId = "player_" + Integer.toHexString(hashCode());
+        this.skillCreator = new SkillCreator();
     }
 
     @Override
@@ -81,21 +83,14 @@ public class ClientHandler implements Runnable {
         Player player = gameState.getPlayer(playerId);
         if (player != null) {
             String skillId = "skill_" + UUID.randomUUID().toString();
-            Skill skill = createSkill(data.skillType, skillId, player);
+            Skill skill = skillCreator.createSkill(data.skillType, skillId, player);
 
             if (skill != null) {
                 gameState.addSkill(skill);
-                System.out.println("Player " + playerId + " used " + data.skillType + " in direction: " + data.direction);
             }
         }
     }
 
-    private Skill createSkill(String skillType, String skillId, Player player) {
-        if ("skill1".equals(skillType)) {
-            return new Skill1(skillId, playerId, player.getX(), player.getY(),player.getDirection());
-        }
-        return null;
-    }
 
     public void sendMessage(String message) {
         if (out != null) {

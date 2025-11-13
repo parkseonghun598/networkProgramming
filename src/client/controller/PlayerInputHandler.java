@@ -1,6 +1,6 @@
 package client.controller;
 
-import client.model.Player;
+import common.player.Player;
 import common.enums.Direction;
 import java.awt.event.KeyEvent;
 

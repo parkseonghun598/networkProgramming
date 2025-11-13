@@ -3,9 +3,10 @@ package server;
 import server.core.GameLoop;
 import server.core.GameState;
 import server.handler.ClientHandler;
-import server.handler.MonsterHandler;
+import server.map.Hennessis;
 
-import static java.lang.Thread.sleep;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class GameServer {
 
@@ -13,11 +14,11 @@ public class GameServer {
 
     private final GameState gameState;
     private final GameLoop gameLoop;
-    private final java.util.List<ClientHandler> clients;
+    private final List<ClientHandler> clients;
 
     public GameServer() {
-        gameState = new GameState();
-        clients = new java.util.concurrent.CopyOnWriteArrayList<>();
+        gameState = new Hennessis();
+        clients = new CopyOnWriteArrayList<>();
         gameLoop = new GameLoop(gameState, clients);
     }
 
@@ -40,19 +41,10 @@ public class GameServer {
                 ClientHandler clientHandler = new ClientHandler(clientSocket, gameState);
                 clients.add(clientHandler);
                 new Thread(clientHandler).start();
-
-                for(int i = 0 ; i < 20 ; i++){
-                    MonsterHandler monsterHandler = new MonsterHandler(gameState);
-                    new Thread(monsterHandler).start();
-                    sleep(100);
-                }
             }
-
 
         } catch (java.io.IOException e) {
             System.err.println("Error in server: " + e.getMessage());
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
         }
     }
 }

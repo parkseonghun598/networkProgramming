@@ -4,8 +4,8 @@ import client.controller.NetworkHandler;
 import client.controller.PlayerInputHandler;
 import client.util.GameStateParser;
 import client.util.SpriteManager;
-import client.model.Monster;
-import client.model.Player;
+import common.monster.Monster;
+import common.player.Player;
 import common.skills.Skill;
 
 import javax.swing.JPanel;
@@ -19,6 +19,8 @@ import java.io.File;
 import javax.imageio.ImageIO;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
+
+import static common.ImagePath.*;
 
 public class GamePanel extends JPanel implements KeyListener, PlayerInputHandler.PlayerMovementCallback {
 
@@ -34,7 +36,7 @@ public class GamePanel extends JPanel implements KeyListener, PlayerInputHandler
     private static final double GRAVITY = 0.5;
     private static final double JUMP_STRENGTH = -12.0;
     private static final int GROUND_Y = 500;
-    private static final String BACKGROUND_IMAGE_PATH = "../img/헤네시스.png";
+
 
     public GamePanel() {
         setPreferredSize(new Dimension(800, 600));
@@ -48,7 +50,6 @@ public class GamePanel extends JPanel implements KeyListener, PlayerInputHandler
             new Thread(networkHandler).start();
         } catch (Exception e) {
             showError("Failed to connect to the server or load assets.");
-            e.printStackTrace();
         }
 
         // Client-side game loop

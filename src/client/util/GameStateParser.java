@@ -1,7 +1,7 @@
 package client.util;
 
-import client.model.Monster;
-import client.model.Player;
+import common.monster.Monster;
+import common.player.Player;
 import common.skills.Skill;
 import common.skills.Skill1;
 import java.util.List;
@@ -51,9 +51,11 @@ public class GameStateParser {
             for (String monsterStr : monstersJson.split("\\},\\{")) {
                 Monster m = new Monster();
                 String id = monsterStr.split("\"id\":\"")[1].split("\"")[0];
+                String name = monsterStr.split("\"name\":\"")[1].split("\"")[0];
                 int x = Integer.parseInt(monsterStr.split("\"x\":")[1].split(",")[0]);
                 int y = Integer.parseInt(monsterStr.split("\"y\":")[1].split("}")[0]);
                 m.setId(id);
+                m.setName(name);
                 m.setX(x);
                 m.setY(y);
                 monsters.add(m);
