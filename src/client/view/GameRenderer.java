@@ -1,6 +1,7 @@
 package client.view;
 
 import client.util.SpriteManager;
+import common.map.Portal;
 import common.monster.Monster;
 import common.player.Player;
 import common.skills.Skill;
@@ -15,7 +16,7 @@ public class GameRenderer {
 
     public static void render(Graphics g, BufferedImage background, String errorMessage,
                              List<Monster> monsters, List<Skill> skills, List<Player> players,
-                             String myPlayerId, int width, int height) {
+                             List<Portal> portals, String myPlayerId, int width, int height) {
         if (background != null) {
             g.drawImage(background, 0, 0, width, height, null);
         }
@@ -26,9 +27,20 @@ public class GameRenderer {
             return;
         }
 
+        renderPortals(g, portals);
         renderMonsters(g, monsters);
         renderSkills(g, skills);
         renderPlayers(g, players, myPlayerId);
+    }
+
+    private static void renderPortals(Graphics g, List<Portal> portals) {
+        Image portalSprite = SpriteManager.getSprite("portal");
+        if (portalSprite != null) {
+            for (Portal portal : portals) {
+                g.drawImage(portalSprite, portal.getBounds().x, portal.getBounds().y,
+                        portal.getBounds().width, portal.getBounds().height, null);
+            }
+        }
     }
 
     private static void renderMonsters(Graphics g, List<Monster> monsters) {

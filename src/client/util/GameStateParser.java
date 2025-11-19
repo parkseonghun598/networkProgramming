@@ -1,18 +1,22 @@
 package client.util;
 
+import common.map.Portal;
 import common.monster.Monster;
 import common.player.Player;
 import common.skills.Skill;
 import common.skills.Skill1;
+
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class GameStateParser {
 
     public static void parseAndUpdate(String jsonState, List<Player> players,
-                                      List<Monster> monsters, List<Skill> skills) {
+                                      List<Monster> monsters, List<Skill> skills, List<Portal> portals, String myPlayerId) {
         try {
             if (jsonState.contains("\"players\":[")) {
-                parsePlayers(jsonState, players);
+                parsePlayers(jsonState, players, myPlayerId);
             }
 
             if (jsonState.contains("\"monsters\":[")) {
@@ -22,8 +26,30 @@ public class GameStateParser {
             if (jsonState.contains("\"skills\":[")) {
                 parseSkills(jsonState, skills);
             }
+            if (jsonState.contains("\"portals\":[")) {
+                parsePortals(jsonState, portals);
+            }
         } catch (Exception e) {
             System.err.println("Failed to parse game state: " + jsonState);
+        }
+    }
+
+    private static void parsePortals(String jsonState, List<Portal> portals) {
+        portals.clear();
+        String portalsJson = jsonState.split("\"portals\":\\[")[1].split("\\]")[0];
+        if (!portalsJson.isEmpty()) {
+            for (String portalStr : portalsJson.split("\\},\\{")) {
+                try {
+                    int x = Integer.parseInt(portalStr.split("\"x\":")[1].split(",")[0]);
+                    int y = Integer.parseInt(portalStr.split("\"y\":")[1].split(",")[0]);
+                    int width = Integer.parseInt(portalStr.split("\"width\":")[1].split(",")[0]);
+                    int height = Integer.parseInt(portalStr.split("\"height\":")[1].split("}")[0]);
+                    // The client only needs to know where to draw the portal, so target info is not needed.
+                    portals.add(new Portal(x, y, width, height, null, 0, 0));
+                } catch (Exception e) {
+                    System.err.println("Failed to parse portal: " + portalStr);
+                }
+            }
         }
     }
 
@@ -41,21 +67,49 @@ public class GameStateParser {
         return null;
     }
 
-    private static void parsePlayers(String jsonState, List<Player> players) {
-        players.clear();
+    private static void parsePlayers(String jsonState, List<Player> players, String myPlayerId) {
+        List<Player> receivedPlayers = new ArrayList<>();
         String playersJson = jsonState.split("\"players\":\\[")[1].split("\\]")[0];
-        if (!playersJson.isEmpty()) {
-            for (String playerStr : playersJson.split("\\},\\{")) {
-                Player p = new Player();
-                String id = playerStr.split("\"id\":\"")[1].split("\"")[0];
-                int x = Integer.parseInt(playerStr.split("\"x\":")[1].split(",")[0]);
-                int y = Integer.parseInt(playerStr.split("\"y\":")[1].split("}")[0]);
-                p.setId(id);
-                p.setX(x);
-                p.setY(y);
-                players.add(p);
-            }
+        if (playersJson.isEmpty()) {
+            players.clear();
+            return;
         }
+
+        for (String playerStr : playersJson.split("\\},\\{")) {
+            String id = playerStr.split("\"id\":\"")[1].split("\"")[0];
+            int x = Integer.parseInt(playerStr.split("\"x\":")[1].split(",")[0]);
+            int y = Integer.parseInt(playerStr.split("\"y\":")[1].split(",")[0]);
+            String directionStr = "right"; // default
+            if (playerStr.contains("\"direction\":\"")) {
+                directionStr = playerStr.split("\"direction\":\"")[1].split("\"")[0];
+            }
+            String mapId = "hennesis"; // default
+            if (playerStr.contains("\"mapId\":\"")) {
+                mapId = playerStr.split("\"mapId\":\"")[1].split("\"")[0];
+            }
+
+            Optional<Player> existingPlayerOpt = players.stream().filter(p -> p.getId().equals(id)).findFirst();
+            Player player;
+            if (existingPlayerOpt.isPresent()) {
+                player = existingPlayerOpt.get();
+            } else {
+                player = new Player();
+                player.setId(id);
+                players.add(player);
+            }
+
+            player.setX(x);
+            player.setY(y);
+            player.setMapId(mapId);
+
+            // Only update direction for other players, not myPlayer
+            if (!id.equals(myPlayerId)) {
+                player.setDirection(common.enums.Direction.fromString(directionStr));
+            }
+            receivedPlayers.add(player);
+        }
+
+        players.retainAll(receivedPlayers);
     }
 
     private static void parseMonsters(String jsonState, List<Monster> monsters) {
@@ -100,7 +154,6 @@ public class GameStateParser {
                         skills.add(skill);
                     }
                 } catch (Exception e) {
-                    // Skip malformed skill
                 }
             }
         }

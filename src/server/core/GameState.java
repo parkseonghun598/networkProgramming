@@ -9,21 +9,24 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.stream.Collectors;
 
 public class GameState {
 
     private final Map<String, Player> players;
     private final List<Skill> skills;
-    private GameMap currentMap;
+    private final Map<String, GameMap> maps;
 
-    public GameState(GameMap initialMap) {
-        this.currentMap = initialMap;
+    public GameState(Map<String, GameMap> maps) {
+        this.maps = maps;
         this.players = new ConcurrentHashMap<>();
         this.skills = new CopyOnWriteArrayList<>();
     }
 
     public void update() throws InterruptedException {
-        currentMap.update();
+        for (GameMap map : maps.values()) {
+            map.update();
+        }
         updateSkills();
     }
 
@@ -53,8 +56,16 @@ public class GameState {
         return new CopyOnWriteArrayList<>(players.values());
     }
 
-    public List<Monster> getAllMonsters() {
-        return currentMap.getMonsters();
+    public List<Player> getPlayersInMap(String mapId) {
+        return players.values().stream()
+                .filter(p -> mapId.equals(p.getMapId()))
+                .collect(Collectors.toList());
+    }
+
+
+    public List<Monster> getMonstersInMap(String mapId) {
+        GameMap map = maps.get(mapId);
+        return (map != null) ? map.getMonsters() : new CopyOnWriteArrayList<>();
     }
 
     public void addSkill(Skill skill) {
@@ -76,12 +87,12 @@ public class GameState {
         skills.removeIf(s -> !s.isActive());
     }
 
-    public GameMap getCurrentMap() {
-        return currentMap;
+    public GameMap getMap(String mapId) {
+        return maps.get(mapId);
     }
 
-    public void setCurrentMap(GameMap newMap) {
-        this.currentMap = newMap;
+    public Map<String, GameMap> getMaps() {
+        return maps;
     }
 }
 

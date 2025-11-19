@@ -11,41 +11,34 @@ public class PlayerInputHandler {
 
         int x = myPlayer.getX();
         int y = myPlayer.getY();
-        String state = "idle";
-        boolean shouldSkip = false;
 
         switch (e.getKeyCode()) {
             case KeyEvent.VK_LEFT:
-                x -= 5;
+                myPlayer.setX(x-5);
                 myPlayer.setDirection(Direction.LEFT);
-                state = "move";
+                myPlayer.setState("move");
                 break;
             case KeyEvent.VK_RIGHT:
-                x += 5;
+                myPlayer.setX(x+5);
                 myPlayer.setDirection(Direction.RIGHT);
-                state = "move";
+                myPlayer.setState("move");
                 break;
+            case KeyEvent.VK_UP:
+                callback.usePortal();
+                return; // USE_PORTAL 메시지는 바로 전송되므로 sendUpdate()를 호출하지 않음
             case KeyEvent.VK_SPACE:
                 if (callback.canJump()) {
                     callback.initiateJump();
-                    state = "jump";
+                    myPlayer.setState("jump");
                 }
                 break;
             case KeyEvent.VK_Q:
                 callback.useSkill("skill1");
-                shouldSkip = true;
                 break;
             default:
                 return;
         }
-
-        if (!shouldSkip) {
-            myPlayer.setX(x);
-            myPlayer.setY(y);
-            //todo:myPlayer.setDirection(direction);
-            myPlayer.setState(state);
-            callback.sendUpdate();
-        }
+        callback.sendUpdate();
     }
 
     public static void handleKeyRelease(KeyEvent e, Player myPlayer, PlayerMovementCallback callback) {
@@ -54,7 +47,6 @@ public class PlayerInputHandler {
         switch (e.getKeyCode()) {
             case KeyEvent.VK_LEFT:
             case KeyEvent.VK_RIGHT:
-                myPlayer.setState("idle");
                 callback.sendUpdate();
                 break;
         }
@@ -64,6 +56,7 @@ public class PlayerInputHandler {
         boolean canJump();
         void initiateJump();
         void useSkill(String skillType);
+        void usePortal();
         void sendUpdate();
     }
 }

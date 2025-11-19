@@ -28,6 +28,7 @@ public class GamePanel extends JPanel implements KeyListener, PlayerInputHandler
     private final List<Player> players;
     private final List<Monster> monsters;
     private final List<Skill> skills;
+    private final List<common.map.Portal> portals;
     private String currentBackgroundImagePath;
     private BufferedImage background;
 
@@ -41,6 +42,7 @@ public class GamePanel extends JPanel implements KeyListener, PlayerInputHandler
         this.players = new CopyOnWriteArrayList<>();
         this.monsters = new CopyOnWriteArrayList<>();
         this.skills = new CopyOnWriteArrayList<>();
+        this.portals = new CopyOnWriteArrayList<>();
 
         setPreferredSize(new Dimension(800, 600));
         setFocusable(true);
@@ -88,7 +90,7 @@ public class GamePanel extends JPanel implements KeyListener, PlayerInputHandler
     }
 
     public void updateGameState(String jsonState) {
-        GameStateParser.parseAndUpdate(jsonState, players, monsters, skills);
+        GameStateParser.parseAndUpdate(jsonState, players, monsters, skills, portals, myPlayerId);
         String newBgPath = GameStateParser.parseBackgroundImagePath(jsonState);
         if (newBgPath != null) {
             setBackgroundImage(newBgPath);
@@ -116,7 +118,7 @@ public class GamePanel extends JPanel implements KeyListener, PlayerInputHandler
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
-        GameRenderer.render(g, background, errorMessage, monsters, skills, players,
+        GameRenderer.render(g, background, errorMessage, monsters, skills, players, portals,
                            myPlayerId, getWidth(), getHeight());
     }
 
@@ -152,13 +154,20 @@ public class GamePanel extends JPanel implements KeyListener, PlayerInputHandler
         Player myPlayer = getMyPlayer();
         if (myPlayer == null) return;
 
-        String direction = myPlayer.getDirection() != null ? myPlayer.getDirection().getValue() : "right";
+        String direction = myPlayer.getDirection().getValue();
+
         String skillMsg = String.format(
             "{\"type\":\"SKILL_USE\",\"payload\":{\"skillType\":\"%s\",\"direction\":\"%s\"}}",
             skillType, direction
         );
         networkHandler.sendMessage(skillMsg);
         System.out.println("Skill used: " + skillType + " in direction: " + direction);
+    }
+
+    @Override
+    public void usePortal() {
+        String msg = "{\"type\":\"USE_PORTAL\"}";
+        networkHandler.sendMessage(msg);
     }
 
     @Override
@@ -173,7 +182,7 @@ public class GamePanel extends JPanel implements KeyListener, PlayerInputHandler
         String updateMsg = String.format(
             "{\"type\":\"PLAYER_UPDATE\",\"payload\":{\"x\":%d,\"y\":%d,\"state\":\"%s\",\"direction\":\"%s\"}}",
             myPlayer.getX(), myPlayer.getY(), myPlayer.getState(),
-            myPlayer.getDirection() != null ? myPlayer.getDirection().getValue() : "right"
+            myPlayer.getDirection().getValue()
         );
         networkHandler.sendMessage(updateMsg);
     }}
