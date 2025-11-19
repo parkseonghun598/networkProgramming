@@ -1,5 +1,6 @@
 package server.map;
 
+import common.map.Portal;
 import common.monster.Monster;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -11,13 +12,15 @@ public class GameMap {
     private final List<Monster> monsters;
     private final int maxMonsters;
     private final Supplier<Monster> monsterFactory;
+    private final List<Portal> portals;
 
-    public GameMap(String mapId, String backgroundImagePath, int maxMonsters, Supplier<Monster> monsterFactory) {
+    public GameMap(String mapId, String backgroundImagePath, int maxMonsters, Supplier<Monster> monsterFactory, List<Portal> portals) {
         this.mapId = mapId;
         this.backgroundImagePath = backgroundImagePath;
         this.maxMonsters = maxMonsters;
         this.monsterFactory = monsterFactory;
         this.monsters = new CopyOnWriteArrayList<>();
+        this.portals = portals;
     }
 
     public void update() {
@@ -47,5 +50,9 @@ public class GameMap {
 
     public String getBackgroundImagePath() {
         return backgroundImagePath;
+    }
+
+    public List<Portal> getPortals() {
+        return portals;
     }
 }

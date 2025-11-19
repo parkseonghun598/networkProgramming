@@ -8,6 +8,15 @@ public class Player {
     private int y;
     private String state; // "idle", "move", "jump"
     private Direction direction;
+    private String mapId = "hennesis";
+
+    public String getMapId() {
+        return mapId;
+    }
+
+    public void setMapId(String mapId) {
+        this.mapId = mapId;
+    }
 
     public String getId() {
         return id;

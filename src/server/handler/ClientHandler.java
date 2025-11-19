@@ -1,5 +1,6 @@
 package server.handler;
 
+import common.enums.Direction;
 import common.player.Player;
 import common.skills.Skill;
 import server.core.GameState;
@@ -52,6 +53,8 @@ public class ClientHandler implements Runnable {
                 } else if (inputLine.contains("\"type\":\"SKILL_USE\"")) {
                     handleSkillUse(inputLine);
                     System.out.println(playerId + ": "+ inputLine);
+                } else if (inputLine.contains("\"type\":\"USE_PORTAL\"")) {
+                    handlePortalUse();
                 }
             }
 
@@ -60,6 +63,33 @@ public class ClientHandler implements Runnable {
         } finally {
             gameState.removePlayer(this.playerId);
             closeResources();
+        }
+    }
+
+    public String getPlayerId() {
+        return playerId;
+    }
+
+    public boolean isClosed() {
+        return clientSocket.isClosed();
+    }
+
+    private void handlePortalUse() {
+        Player player = gameState.getPlayer(playerId);
+        if (player == null) return;
+
+        server.map.GameMap currentMap = gameState.getMap(player.getMapId());
+        if (currentMap == null) return;
+
+        for (common.map.Portal portal : currentMap.getPortals()) {
+            // Player dimensions are hardcoded as 30x30 in the renderer
+            if (portal.isPlayerInside(player.getX(), player.getY(), 30, 30)) {
+                player.setMapId(portal.getTargetMapId());
+                player.setX(portal.getTargetX());
+                player.setY(portal.getTargetY());
+                System.out.println("Player " + playerId + " used portal to " + portal.getTargetMapId());
+                break; // Assume one portal at a time
+            }
         }
     }
 
@@ -82,7 +112,8 @@ public class ClientHandler implements Runnable {
         Player player = gameState.getPlayer(playerId);
         if (player != null) {
             String skillId = "skill_" + UUID.randomUUID().toString();
-            Skill skill = skillCreator.createSkill(data.skillType, skillId, player);
+            Direction direction = Direction.fromString(data.direction);
+            Skill skill = skillCreator.createSkill(data.skillType, skillId, player, direction);
 
             if (skill != null) {
                 gameState.addSkill(skill);

@@ -27,7 +27,7 @@ public class Skill1 extends Skill {
     protected void loadResources() {
         try {
             this.sprite = new ImageIcon(RESOURCE_PATH).getImage();
-            System.out.println("SUCCESS: Skill1 GIF loaded from: " + RESOURCE_PATH);
+            //System.out.println("SUCCESS: Skill1 GIF loaded from: " + RESOURCE_PATH);
         } catch (Exception e) {
             System.err.println("ERROR loading skill1.gif: " + e.getMessage());
             e.printStackTrace();

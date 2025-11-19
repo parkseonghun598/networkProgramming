@@ -3,48 +3,46 @@ package server;
 import server.core.GameLoop;
 import server.core.GameState;
 import server.handler.ClientHandler;
+import server.map.GameMap;
 import server.map.MapCreator;
 
-import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.io.IOException;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class GameServer {
-
     private static final int PORT = 12345;
-
-    private final GameState gameState;
-    private final GameLoop gameLoop;
-    private final List<ClientHandler> clients;
-
-    public GameServer() {
-        gameState = new GameState(MapCreator.Hennessis());
-        clients = new CopyOnWriteArrayList<>();
-        gameLoop = new GameLoop(gameState, clients);
-    }
+    private static final ExecutorService clientPool = Executors.newCachedThreadPool();
+    private static GameState gameState;
 
     public static void main(String[] args) {
-        System.out.println("Starting Game Server on port: " + PORT);
-        new GameServer().startServer(PORT);
-    }
+        // Initialize maps
+        Map<String, GameMap> maps = new HashMap<>();
+        maps.put("hennesis", MapCreator.Hennessis());
+        maps.put("bossMap", MapCreator.BossMap());
 
-    public void startServer(int port) {
+        // Initialize game state with all maps
+        gameState = new GameState(maps);
+
+        // Start the game loop in a separate thread
+        GameLoop gameLoop = new GameLoop(gameState);
         new Thread(gameLoop).start();
 
-
-        try (java.net.ServerSocket serverSocket = new java.net.ServerSocket(port)) {
-            System.out.println("연결을 기다리는 중입니다...");
+        try (ServerSocket serverSocket = new ServerSocket(PORT)) {
+            System.out.println("Game server is running on port " + PORT);
 
             while (true) {
-                java.net.Socket clientSocket = serverSocket.accept();
-                System.out.println("새로운 클라이언트가 연결되었습니다 : " + clientSocket.getInetAddress().getHostAddress());
-
+                Socket clientSocket = serverSocket.accept();
                 ClientHandler clientHandler = new ClientHandler(clientSocket, gameState);
-                clients.add(clientHandler);
-                new Thread(clientHandler).start();
+                gameLoop.addClient(clientHandler);
+                clientPool.execute(clientHandler);
             }
-
-        } catch (java.io.IOException e) {
-            System.err.println("Error in server: " + e.getMessage());
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 }

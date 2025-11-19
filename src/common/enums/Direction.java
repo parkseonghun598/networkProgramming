@@ -17,13 +17,12 @@ public enum Direction {
     }
 
     public static Direction fromString(String text) {
-        if (text == null) return RIGHT; // default
         for (Direction d : Direction.values()) {
             if (d.value.equalsIgnoreCase(text)) {
                 return d;
             }
         }
-        return RIGHT; // default fallback
+        return null;
     }
 
     @Override

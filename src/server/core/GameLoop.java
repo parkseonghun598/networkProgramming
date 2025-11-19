@@ -3,32 +3,34 @@ package server.core;
 import server.handler.ClientHandler;
 import server.util.GameStateSerializer;
 
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
+
 public class GameLoop implements Runnable {
 
     private final GameState gameState;
-    private final java.util.List<ClientHandler> clients;
+    private final List<ClientHandler> clients;
     private volatile boolean running = true;
 
-    public GameLoop(GameState gameState, java.util.List<ClientHandler> clients) {
+    public GameLoop(GameState gameState) {
         this.gameState = gameState;
-        this.clients = clients;
+        this.clients = new CopyOnWriteArrayList<>();
+    }
+
+    public void addClient(ClientHandler clientHandler) {
+        this.clients.add(clientHandler);
+    }
+
+    public void removeClient(ClientHandler clientHandler) {
+        this.clients.remove(clientHandler);
     }
 
     @Override
     public void run() {
-
-
         while (running) {
             try {
                 updateGame();
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
-
-            // 클라이언트에게 메세지 전송
-            broadcastState();
-
-            try {
+                broadcastState();
                 Thread.sleep(16); // ~60 FPS
             } catch (InterruptedException e) {
                 running = false;
@@ -43,13 +45,12 @@ public class GameLoop implements Runnable {
     }
 
     private void broadcastState() {
-        String gameStateJson = GameStateSerializer.toJson(
-            gameState.getCurrentMap(),
-            gameState.getAllPlayers(),
-            gameState.getAllMonsters(),
-            gameState.getAllSkills()
-        );
+        clients.removeIf(ClientHandler::isClosed);
         for (ClientHandler client : clients) {
+            String playerId = client.getPlayerId();
+            if (playerId == null) continue;
+
+            String gameStateJson = GameStateSerializer.toJson(gameState, playerId);
             client.sendMessage(gameStateJson);
         }
     }

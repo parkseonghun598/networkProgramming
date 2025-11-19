@@ -1,20 +1,37 @@
 package server.map;
 
 import common.ImagePath;
+import common.map.Portal;
 import common.monster.GreenSlime;
+
+import java.util.Collections;
+import java.util.List;
 
 public class MapCreator {
     public static GameMap Hennessis() {
+        Portal toBossMap = new Portal(700, 470, 50, 80, "bossMap", 100, 450);
         return new GameMap(
-            "hennessis",
+            "hennesis",
             ImagePath.HENNESSIS_IMAGE_PATH,
             10,
-            GreenSlime::new
+            GreenSlime::new,
+            List.of(toBossMap)
         );
     }
 
     public static GameMap Robby() {
         // todo : 다른 맵
         return null;
+    }
+
+    public static GameMap BossMap() {
+        Portal toHenesys = new Portal(50, 450, 50, 80, "hennesis", 650, 450);
+        return new GameMap(
+                "bossMap",
+                ImagePath.BOSSBG_IMAGE_PATH,
+                5,
+                GreenSlime::new,
+                List.of(toHenesys)
+        );
     }
 }
