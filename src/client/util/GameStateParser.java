@@ -13,7 +13,7 @@ import java.util.Optional;
 public class GameStateParser {
 
     public static void parseAndUpdate(String jsonState, List<Player> players,
-                                      List<Monster> monsters, List<Skill> skills, List<Portal> portals, String myPlayerId) {
+            List<Monster> monsters, List<Skill> skills, List<Portal> portals, String myPlayerId) {
         try {
             if (jsonState.contains("\"players\":[")) {
                 parsePlayers(jsonState, players, myPlayerId);
@@ -44,7 +44,8 @@ public class GameStateParser {
                     int y = Integer.parseInt(portalStr.split("\"y\":")[1].split(",")[0]);
                     int width = Integer.parseInt(portalStr.split("\"width\":")[1].split(",")[0]);
                     int height = Integer.parseInt(portalStr.split("\"height\":")[1].split("}")[0]);
-                    // The client only needs to know where to draw the portal, so target info is not needed.
+                    // The client only needs to know where to draw the portal, so target info is not
+                    // needed.
                     portals.add(new Portal(x, y, width, height, null, 0, 0));
                 } catch (Exception e) {
                     System.err.println("Failed to parse portal: " + portalStr);
@@ -121,11 +122,32 @@ public class GameStateParser {
                 String id = monsterStr.split("\"id\":\"")[1].split("\"")[0];
                 String name = monsterStr.split("\"name\":\"")[1].split("\"")[0];
                 int x = Integer.parseInt(monsterStr.split("\"x\":")[1].split(",")[0]);
-                int y = Integer.parseInt(monsterStr.split("\"y\":")[1].split("}")[0]);
+                int y = Integer.parseInt(monsterStr.split("\"y\":")[1].split(",")[0]);
+                int hp = 0;
+                int maxHp = 0;
+                try {
+                    if (monsterStr.contains("\"hp\":")) {
+                        hp = Integer.parseInt(monsterStr.split("\"hp\":")[1].split(",")[0]);
+                    }
+                    if (monsterStr.contains("\"maxHp\":")) {
+                        String maxHpStr = monsterStr.split("\"maxHp\":")[1];
+                        if (maxHpStr.contains("}")) {
+                            maxHpStr = maxHpStr.split("}")[0];
+                        } else if (maxHpStr.contains(",")) {
+                            maxHpStr = maxHpStr.split(",")[0];
+                        }
+                        maxHp = Integer.parseInt(maxHpStr);
+                    }
+                } catch (Exception e) {
+                    System.err.println("Error parsing monster HP: " + e.getMessage());
+                }
+
                 m.setId(id);
                 m.setName(name);
                 m.setX(x);
                 m.setY(y);
+                m.setHp(hp);
+                m.setMaxHp(maxHp);
                 monsters.add(m);
             }
         }
@@ -147,7 +169,7 @@ public class GameStateParser {
                     Skill skill = null;
                     if ("skill1".equals(type)) {
                         skill = new Skill1(id, playerId, x, y,
-                            common.enums.Direction.fromString(direction));
+                                common.enums.Direction.fromString(direction));
                     }
 
                     if (skill != null) {

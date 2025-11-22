@@ -27,7 +27,6 @@ public class GameStateSerializer {
         // Skills are currently global, could be filtered by mapId if needed
         List<Skill> skills = gameState.getAllSkills();
 
-
         StringBuilder sb = new StringBuilder();
         sb.append("{\"type\":\"GAME_STATE\",\"payload\":{");
         appendMapInfo(sb, map);
@@ -38,12 +37,13 @@ public class GameStateSerializer {
         sb.append("}}");
         return sb.toString();
     }
+
     private static void appendPortals(StringBuilder sb, List<common.map.Portal> portals) {
         sb.append(",\"portals\":[");
         for (common.map.Portal p : portals) {
             java.awt.Rectangle bounds = p.getBounds();
             sb.append(String.format("{\"x\":%d,\"y\":%d,\"width\":%d,\"height\":%d}",
-                (int)bounds.getX(), (int)bounds.getY(), (int)bounds.getWidth(), (int)bounds.getHeight()));
+                    (int) bounds.getX(), (int) bounds.getY(), (int) bounds.getWidth(), (int) bounds.getHeight()));
             sb.append(",");
         }
         if (!portals.isEmpty()) {
@@ -63,7 +63,7 @@ public class GameStateSerializer {
         for (Player p : players) {
             String directionStr = p.getDirection() != null ? p.getDirection().getValue() : "right";
             sb.append(String.format("{\"id\":\"%s\",\"x\":%d,\"y\":%d,\"direction\":\"%s\",\"mapId\":\"%s\"}",
-                p.getId(), p.getX(), p.getY(), directionStr, p.getMapId()));
+                    p.getId(), p.getX(), p.getY(), directionStr, p.getMapId()));
             sb.append(",");
         }
         if (!players.isEmpty()) {
@@ -75,8 +75,9 @@ public class GameStateSerializer {
     private static void appendMonsters(StringBuilder sb, List<Monster> monsters) {
         sb.append(",\"monsters\":[");
         for (Monster m : monsters) {
-            sb.append(String.format("{\"id\":\"%s\",\"name\":\"%s\",\"type\":\"%s\",\"x\":%d,\"y\":%d}",
-                m.getId(), m.getName(), m.getType(), m.getX(), m.getY()));
+            sb.append(String.format(
+                    "{\"id\":\"%s\",\"name\":\"%s\",\"type\":\"%s\",\"x\":%d,\"y\":%d,\"hp\":%d,\"maxHp\":%d}",
+                    m.getId(), m.getName(), m.getType(), m.getX(), m.getY(), m.getHp(), m.getMaxHp()));
             sb.append(",");
         }
         if (!monsters.isEmpty()) {
@@ -90,8 +91,8 @@ public class GameStateSerializer {
         for (Skill s : skills) {
             String directionStr = s.getDirection().getValue();
             sb.append(String.format(
-                "{\"id\":\"%s\",\"playerId\":\"%s\",\"type\":\"%s\",\"x\":%d,\"y\":%d,\"direction\":\"%s\",\"active\":%b}",
-                s.getId(), s.getPlayerId(), s.getType(), s.getX(), s.getY(), directionStr, s.isActive()));
+                    "{\"id\":\"%s\",\"playerId\":\"%s\",\"type\":\"%s\",\"x\":%d,\"y\":%d,\"direction\":\"%s\",\"active\":%b}",
+                    s.getId(), s.getPlayerId(), s.getType(), s.getX(), s.getY(), directionStr, s.isActive()));
             sb.append(",");
         }
         if (!skills.isEmpty()) {

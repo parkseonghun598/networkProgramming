@@ -18,7 +18,6 @@ import javax.imageio.ImageIO;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-
 public class GamePanel extends JPanel implements KeyListener, PlayerInputHandler.PlayerMovementCallback {
 
     private NetworkHandler networkHandler;
@@ -36,7 +35,11 @@ public class GamePanel extends JPanel implements KeyListener, PlayerInputHandler
     private boolean isJumping = false;
     private static final double GRAVITY = 0.5;
     private static final double JUMP_STRENGTH = -12.0;
-    private static final int GROUND_Y = 500;
+    private static final int GROUND_Y = 475;
+
+    private JTextArea chatArea;
+    private JTextField chatInput;
+    private JScrollPane chatScrollPane;
 
     public GamePanel() {
         this.players = new CopyOnWriteArrayList<>();
@@ -47,6 +50,44 @@ public class GamePanel extends JPanel implements KeyListener, PlayerInputHandler
         setPreferredSize(new Dimension(800, 600));
         setFocusable(true);
         addKeyListener(this);
+        setLayout(null); // Use absolute positioning
+
+        // Initialize Chat UI
+        chatArea = new JTextArea();
+        chatArea.setEditable(false);
+        chatArea.setLineWrap(true);
+        chatArea.setWrapStyleWord(true);
+        chatArea.setFont(new Font("Arial", Font.PLAIN, 12));
+        chatArea.setBackground(new Color(0, 0, 0, 150)); // Semi-transparent black
+        chatArea.setForeground(Color.WHITE);
+
+        chatScrollPane = new JScrollPane(chatArea);
+        chatScrollPane.setBounds(580, 10, 200, 150); // Top-right corner
+        chatScrollPane.setBorder(BorderFactory.createEmptyBorder());
+        chatScrollPane.getViewport().setOpaque(false);
+        chatScrollPane.setOpaque(false);
+        chatScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        add(chatScrollPane);
+
+        chatInput = new JTextField();
+        chatInput.setBounds(580, 165, 200, 25);
+        chatInput.setVisible(false); // Hidden by default
+        add(chatInput);
+
+        chatInput.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+                    String message = chatInput.getText().trim();
+                    if (!message.isEmpty()) {
+                        sendChatMessage(message);
+                        chatInput.setText("");
+                    }
+                    chatInput.setVisible(false);
+                    GamePanel.this.requestFocusInWindow(); // Return focus to game
+                }
+            }
+        });
 
         try {
             SpriteManager.loadSprites();
@@ -61,9 +102,27 @@ public class GamePanel extends JPanel implements KeyListener, PlayerInputHandler
         timer.start();
     }
 
+    private void sendChatMessage(String message) {
+        String jsonMsg = String.format("{\"type\":\"CHAT\",\"payload\":{\"message\":\"%s\"}}", message);
+        networkHandler.sendMessage(jsonMsg);
+    }
+
+    public void addChatMessage(String message) {
+        SwingUtilities.invokeLater(() -> {
+            chatArea.append(message + "\n");
+            chatArea.setCaretPosition(chatArea.getDocument().getLength()); // Auto-scroll
+
+            // Limit history to 10 lines (approximate, or just let it scroll)
+            // User asked for "recent 10 items visible", scrollable history implies keeping
+            // more.
+            // I'll keep it simple for now.
+        });
+    }
+
     private void update() {
         Player myPlayer = getMyPlayer();
-        if (myPlayer == null) return;
+        if (myPlayer == null)
+            return;
 
         if (isJumping) {
             velocityY += GRAVITY;
@@ -81,7 +140,8 @@ public class GamePanel extends JPanel implements KeyListener, PlayerInputHandler
     }
 
     private Player getMyPlayer() {
-        if (myPlayerId == null) return null;
+        if (myPlayerId == null)
+            return null;
         return players.stream().filter(p -> p.getId().equals(myPlayerId)).findFirst().orElse(null);
     }
 
@@ -116,25 +176,29 @@ public class GamePanel extends JPanel implements KeyListener, PlayerInputHandler
     }
 
     @Override
-    protected void paintComponent(Graphics g) {
-        super.paintComponent(g);
-        GameRenderer.render(g, background, errorMessage, monsters, skills, players, portals,
-                           myPlayerId, getWidth(), getHeight());
+    public void keyTyped(KeyEvent e) {
     }
 
     @Override
-    public void keyTyped(KeyEvent e) {}
-
-    @Override
     public void keyPressed(KeyEvent e) {
-        if (myPlayerId == null) return;
+        if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+            if (!chatInput.isVisible()) {
+                chatInput.setVisible(true);
+                chatInput.requestFocusInWindow();
+            }
+            return;
+        }
+
+        if (myPlayerId == null)
+            return;
         PlayerInputHandler.handleKeyPress(e, getMyPlayer(), this);
         repaint();
     }
 
     @Override
     public void keyReleased(KeyEvent e) {
-        if (myPlayerId == null) return;
+        if (myPlayerId == null)
+            return;
         PlayerInputHandler.handleKeyRelease(e, getMyPlayer(), this);
     }
 
@@ -149,19 +213,71 @@ public class GamePanel extends JPanel implements KeyListener, PlayerInputHandler
         velocityY = JUMP_STRENGTH;
     }
 
+    private final java.util.Map<String, Long> skillCooldowns = new java.util.concurrent.ConcurrentHashMap<>();
+
     @Override
     public void useSkill(String skillType) {
         Player myPlayer = getMyPlayer();
-        if (myPlayer == null) return;
+        if (myPlayer == null)
+            return;
+
+        long currentTime = System.currentTimeMillis();
+        if (skillCooldowns.containsKey(skillType)) {
+            long lastUsed = skillCooldowns.get(skillType);
+            if (currentTime - lastUsed < 3000) { // Hardcoded 3000ms for now, should match server
+                System.out.println("Skill " + skillType + " is on cooldown.");
+                return;
+            }
+        }
+
+        skillCooldowns.put(skillType, currentTime);
 
         String direction = myPlayer.getDirection().getValue();
 
         String skillMsg = String.format(
-            "{\"type\":\"SKILL_USE\",\"payload\":{\"skillType\":\"%s\",\"direction\":\"%s\"}}",
-            skillType, direction
-        );
+                "{\"type\":\"SKILL_USE\",\"payload\":{\"skillType\":\"%s\",\"direction\":\"%s\"}}",
+                skillType, direction);
         networkHandler.sendMessage(skillMsg);
         System.out.println("Skill used: " + skillType + " in direction: " + direction);
+    }
+
+    @Override
+    protected void paintComponent(Graphics g) {
+        super.paintComponent(g);
+        GameRenderer.render(g, background, errorMessage, monsters, skills, players, portals,
+                myPlayerId, getWidth(), getHeight());
+
+        // Render Cooldown UI
+        renderCooldownUI(g);
+    }
+
+    private void renderCooldownUI(Graphics g) {
+        int x = 10;
+        int y = getHeight() - 60;
+        int size = 50;
+
+        g.setColor(Color.GRAY);
+        g.fillRect(x, y, size, size);
+        g.setColor(Color.WHITE);
+        g.drawRect(x, y, size, size);
+        g.drawString("Q", x + 5, y + 15); // Key bind
+
+        if (skillCooldowns.containsKey("skill1")) {
+            long lastUsed = skillCooldowns.get("skill1");
+            long currentTime = System.currentTimeMillis();
+            long elapsed = currentTime - lastUsed;
+            long cooldown = 3000;
+
+            if (elapsed < cooldown) {
+                int arc = (int) (360 * (1.0 - (double) elapsed / cooldown));
+                g.setColor(new Color(0, 0, 0, 150));
+                g.fillArc(x, y, size, size, 90, arc);
+
+                g.setColor(Color.WHITE);
+                String timeLeft = String.format("%.1f", (cooldown - elapsed) / 1000.0);
+                g.drawString(timeLeft, x + 15, y + 30);
+            }
+        }
     }
 
     @Override
@@ -177,12 +293,13 @@ public class GamePanel extends JPanel implements KeyListener, PlayerInputHandler
 
     private void sendPlayerUpdate() {
         Player myPlayer = getMyPlayer();
-        if (myPlayer == null) return;
+        if (myPlayer == null)
+            return;
 
         String updateMsg = String.format(
-            "{\"type\":\"PLAYER_UPDATE\",\"payload\":{\"x\":%d,\"y\":%d,\"state\":\"%s\",\"direction\":\"%s\"}}",
-            myPlayer.getX(), myPlayer.getY(), myPlayer.getState(),
-            myPlayer.getDirection().getValue()
-        );
+                "{\"type\":\"PLAYER_UPDATE\",\"payload\":{\"x\":%d,\"y\":%d,\"state\":\"%s\",\"direction\":\"%s\"}}",
+                myPlayer.getX(), myPlayer.getY(), myPlayer.getState(),
+                myPlayer.getDirection().getValue());
         networkHandler.sendMessage(updateMsg);
-    }}
+    }
+}

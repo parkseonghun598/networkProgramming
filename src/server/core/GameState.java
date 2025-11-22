@@ -28,6 +28,45 @@ public class GameState {
             map.update();
         }
         updateSkills();
+        checkCollisions();
+    }
+
+    private void checkCollisions() {
+        for (Skill skill : skills) {
+            if (!skill.isActive())
+                continue;
+
+            // Find which map the skill is in (based on player who cast it)
+            Player player = players.get(skill.getPlayerId());
+            if (player == null)
+                continue;
+
+            GameMap map = maps.get(player.getMapId());
+            if (map == null)
+                continue;
+
+            for (Monster monster : map.getMonsters()) {
+                if (isColliding(skill, monster)) {
+                    monster.takeDamage(skill.getDamage());
+                    skill.deactivate();
+                    System.out.println("Monster " + monster.getId() + " took " + skill.getDamage() + " damage. HP: "
+                            + monster.getHp());
+
+                    if (monster.getHp() <= 0) {
+                        map.getMonsters().remove(monster);
+                        System.out.println("Monster " + monster.getId() + " died.");
+                    }
+                    break; // Skill hits one monster and disappears
+                }
+            }
+        }
+    }
+
+    private boolean isColliding(Skill skill, Monster monster) {
+        return skill.getX() < monster.getX() + 50 && // Monster width 50
+                skill.getX() + skill.getWidth() > monster.getX() &&
+                skill.getY() < monster.getY() + 50 && // Monster height 50
+                skill.getY() + skill.getHeight() > monster.getY();
     }
 
     public void addPlayer(Player player) {
@@ -62,7 +101,6 @@ public class GameState {
                 .collect(Collectors.toList());
     }
 
-
     public List<Monster> getMonstersInMap(String mapId) {
         GameMap map = maps.get(mapId);
         return (map != null) ? map.getMonsters() : new CopyOnWriteArrayList<>();
@@ -95,4 +133,3 @@ public class GameState {
         return maps;
     }
 }
-

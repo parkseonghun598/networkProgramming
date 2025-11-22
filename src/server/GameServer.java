@@ -37,7 +37,7 @@ public class GameServer {
 
             while (true) {
                 Socket clientSocket = serverSocket.accept();
-                ClientHandler clientHandler = new ClientHandler(clientSocket, gameState);
+                ClientHandler clientHandler = new ClientHandler(clientSocket, gameState, gameLoop);
                 gameLoop.addClient(clientHandler);
                 clientPool.execute(clientHandler);
             }

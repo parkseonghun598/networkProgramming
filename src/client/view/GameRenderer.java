@@ -15,22 +15,28 @@ import java.util.List;
 public class GameRenderer {
 
     public static void render(Graphics g, BufferedImage background, String errorMessage,
-                             List<Monster> monsters, List<Skill> skills, List<Player> players,
-                             List<Portal> portals, String myPlayerId, int width, int height) {
-        if (background != null) {
-            g.drawImage(background, 0, 0, width, height, null);
-        }
+            List<Monster> monsters, List<Skill> skills, List<Player> players,
+            List<Portal> portals, String myPlayerId, int width, int height) {
+        try {
+            if (background != null) {
+                g.drawImage(background, 0, 0, width, height, null);
+            }
 
-        if (errorMessage != null) {
+            if (errorMessage != null) {
+                g.setColor(Color.RED);
+                g.drawString(errorMessage, 50, 50);
+                return;
+            }
+
+            renderPortals(g, portals);
+            renderMonsters(g, monsters);
+            renderSkills(g, skills);
+            renderPlayers(g, players, myPlayerId);
+        } catch (Exception e) {
+            e.printStackTrace();
             g.setColor(Color.RED);
-            g.drawString(errorMessage, 50, 50);
-            return;
+            g.drawString("Rendering Error: " + e.getMessage(), 10, 50);
         }
-
-        renderPortals(g, portals);
-        renderMonsters(g, monsters);
-        renderSkills(g, skills);
-        renderPlayers(g, players, myPlayerId);
     }
 
     private static void renderPortals(Graphics g, List<Portal> portals) {
@@ -49,11 +55,33 @@ public class GameRenderer {
             Image monsterSprite = SpriteManager.getSprite(name);
 
             if (monsterSprite != null) {
-                g.drawImage(monsterSprite, monster.getX(), monster.getY(), 30, 30, null);
+                g.drawImage(monsterSprite, monster.getX(), monster.getY(), 50, 50, null);
             } else {
-                System.err.println(name+"의 이미지를 불러오는데 실패했습니다.");
+                System.err.println(name + "의 이미지를 불러오는데 실패했습니다.");
             }
-            g.drawString(monster.getName()+monster.getId(), monster.getX(), monster.getY() - 5);
+            // Draw Background for Text
+            g.setColor(new Color(255, 255, 255, 180));
+            g.fillRect(monster.getX() - 10, monster.getY() - 40, 120, 20);
+
+            g.setColor(Color.BLACK);
+            g.drawString(monster.getName(), monster.getX(), monster.getY() - 25);
+
+            // Draw HP Bar
+            int maxHp = monster.getMaxHp();
+            int currentHp = monster.getHp();
+
+            if (maxHp > 0) {
+                int barWidth = 50;
+                int barHeight = 5;
+                int hpBarWidth = (int) ((double) currentHp / maxHp * barWidth);
+
+                g.setColor(Color.RED);
+                g.fillRect(monster.getX(), monster.getY() - 15, barWidth, barHeight);
+                g.setColor(Color.GREEN);
+                g.fillRect(monster.getX(), monster.getY() - 15, hpBarWidth, barHeight);
+                g.setColor(Color.BLACK);
+                g.drawRect(monster.getX(), monster.getY() - 15, barWidth, barHeight);
+            }
         }
     }
 
@@ -63,10 +91,10 @@ public class GameRenderer {
             if (sprite != null) {
                 if (common.enums.Direction.LEFT.equals(skill.getDirection())) {
                     g.drawImage(sprite, skill.getX() + skill.getWidth(), skill.getY(),
-                               -skill.getWidth(), skill.getHeight(), null);
+                            -skill.getWidth(), skill.getHeight(), null);
                 } else {
                     g.drawImage(sprite, skill.getX(), skill.getY(),
-                               skill.getWidth(), skill.getHeight(), null);
+                            skill.getWidth(), skill.getHeight(), null);
                 }
             } else {
                 g.setColor(Color.YELLOW);
@@ -79,15 +107,15 @@ public class GameRenderer {
         Image playerSprite = SpriteManager.getSprite("player");
         for (Player player : players) {
             if (playerSprite != null) {
-                g.drawImage(playerSprite, player.getX(), player.getY(), 30, 30, null);
+                g.drawImage(playerSprite, player.getX(), player.getY(), 100, 100, null);
             } else {
                 g.setColor(Color.BLUE);
-                g.fillRect(player.getX(), player.getY(), 30, 30);
+                g.fillRect(player.getX(), player.getY(), 100, 100);
             }
 
-            if (player.getId().equals(myPlayerId)) {
+            if (player.getId() != null && player.getId().equals(myPlayerId)) {
                 g.setColor(Color.GREEN);
-                g.drawRect(player.getX() - 2, player.getY() - 2, 34, 34);
+                g.drawRect(player.getX() - 2, player.getY() - 2, 104, 104);
             }
             g.drawString(player.getId(), player.getX(), player.getY() - 5);
         }

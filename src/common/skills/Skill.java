@@ -19,6 +19,8 @@ public abstract class Skill {
     protected int height;
     protected int traveledDistance;
     protected Image sprite;
+    protected int damage;
+    protected long cooldown; // in milliseconds
 
     public Skill(String id, String playerId, int x, int y, Direction direction) {
         this.id = id;
@@ -33,7 +35,8 @@ public abstract class Skill {
     protected abstract void loadResources();
 
     public void update() throws InterruptedException {
-        if (!active) return;
+        if (!active)
+            return;
         move();
         checkRange();
     }
@@ -54,17 +57,57 @@ public abstract class Skill {
         }
     }
 
-    public String getId() { return id; }
-    public String getPlayerId() { return playerId; }
-    public int getX() { return x; }
-    public int getY() { return y; }
-    public Direction getDirection() { return direction; }
-    public boolean isActive() { return active; }
-    public int getWidth() { return width; }
-    public int getHeight() { return height; }
-    public int getRange() { return range; }
-    public void deactivate() { this.active = false; }
-    public Image getSprite() { return sprite; }
+    public String getId() {
+        return id;
+    }
+
+    public String getPlayerId() {
+        return playerId;
+    }
+
+    public int getX() {
+        return x;
+    }
+
+    public int getY() {
+        return y;
+    }
+
+    public Direction getDirection() {
+        return direction;
+    }
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public int getWidth() {
+        return width;
+    }
+
+    public int getHeight() {
+        return height;
+    }
+
+    public int getRange() {
+        return range;
+    }
+
+    public void deactivate() {
+        this.active = false;
+    }
+
+    public Image getSprite() {
+        return sprite;
+    }
+
+    public int getDamage() {
+        return damage;
+    }
+
+    public long getCooldown() {
+        return cooldown;
+    }
 
     public abstract String getType();
 }

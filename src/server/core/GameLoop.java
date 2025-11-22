@@ -48,10 +48,18 @@ public class GameLoop implements Runnable {
         clients.removeIf(ClientHandler::isClosed);
         for (ClientHandler client : clients) {
             String playerId = client.getPlayerId();
-            if (playerId == null) continue;
+            if (playerId == null)
+                continue;
 
             String gameStateJson = GameStateSerializer.toJson(gameState, playerId);
             client.sendMessage(gameStateJson);
+        }
+    }
+
+    public void broadcastMessage(String message) {
+        clients.removeIf(ClientHandler::isClosed);
+        for (ClientHandler client : clients) {
+            client.sendMessage(message);
         }
     }
 

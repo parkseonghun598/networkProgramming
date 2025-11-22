@@ -24,8 +24,8 @@ public class NetworkHandler implements Runnable {
     @Override
     public void run() {
         try (Socket socket = new Socket(host, port);
-             PrintWriter writer = new PrintWriter(socket.getOutputStream(), true);
-             BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()))) {
+                PrintWriter writer = new PrintWriter(socket.getOutputStream(), true);
+                BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()))) {
 
             this.out = writer;
             System.out.println("Connected to the game server.");
@@ -39,6 +39,9 @@ public class NetworkHandler implements Runnable {
                 } else if (serverMessage.contains("\"type\":\"GAME_STATE\"")) {
                     gamePanel.updateGameState(serverMessage);
                     gamePanel.repaint();
+                } else if (serverMessage.contains("\"type\":\"CHAT\"")) {
+                    String message = serverMessage.split("\"message\":\"")[1].split("\"")[0];
+                    gamePanel.addChatMessage(message);
                 }
             }
         } catch (IOException e) {
