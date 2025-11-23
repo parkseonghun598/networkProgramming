@@ -7,6 +7,7 @@ import client.util.SpriteManager;
 import common.monster.Monster;
 import common.player.Player;
 import common.skills.Skill;
+import common.user.User;
 
 import javax.swing.*;
 import java.awt.*;
@@ -23,6 +24,7 @@ public class GamePanel extends JPanel implements KeyListener, PlayerInputHandler
     private NetworkHandler networkHandler;
     private String errorMessage;
     private String myPlayerId;
+    private User currentUser;
 
     private final List<Player> players;
     private final List<Monster> monsters;
@@ -41,7 +43,8 @@ public class GamePanel extends JPanel implements KeyListener, PlayerInputHandler
     private JTextField chatInput;
     private JScrollPane chatScrollPane;
 
-    public GamePanel() {
+    public GamePanel(User user) {
+        this.currentUser = user;
         this.players = new CopyOnWriteArrayList<>();
         this.monsters = new CopyOnWriteArrayList<>();
         this.skills = new CopyOnWriteArrayList<>();
