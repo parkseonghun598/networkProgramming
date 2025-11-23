@@ -221,6 +221,12 @@ public class GamePanel extends JPanel implements KeyListener, PlayerInputHandler
     }
 
     private final java.util.Map<String, Long> skillCooldowns = new java.util.concurrent.ConcurrentHashMap<>();
+    private final java.util.Map<String, Long> skillCooldownDurations = new java.util.HashMap<String, Long>() {{
+        put("skill1", 2000L);
+        put("skill2", 3000L);
+        put("skill3", 5000L);
+        put("skill4", 4000L);
+    }};
 
     @Override
     public void useSkill(String skillType) {
@@ -229,9 +235,11 @@ public class GamePanel extends JPanel implements KeyListener, PlayerInputHandler
             return;
 
         long currentTime = System.currentTimeMillis();
+        long cooldownDuration = skillCooldownDurations.getOrDefault(skillType, 2000L);
+
         if (skillCooldowns.containsKey(skillType)) {
             long lastUsed = skillCooldowns.get(skillType);
-            if (currentTime - lastUsed < 3000) { // Hardcoded 3000ms for now, should match server
+            if (currentTime - lastUsed < cooldownDuration) {
                 System.out.println("Skill " + skillType + " is on cooldown.");
                 return;
             }
@@ -259,21 +267,36 @@ public class GamePanel extends JPanel implements KeyListener, PlayerInputHandler
     }
 
     private void renderCooldownUI(Graphics g) {
-        int x = 10;
+        int startX = 10;
         int y = getHeight() - 60;
         int size = 50;
+        int spacing = 60;
 
+        // Skill1 (Q)
+        renderSingleSkillCooldown(g, "skill1", "Q", startX, y, size);
+
+        // Skill2 (W)
+        renderSingleSkillCooldown(g, "skill2", "W", startX + spacing, y, size);
+
+        // Skill4 (E)
+        renderSingleSkillCooldown(g, "skill4", "E", startX + spacing * 2, y, size);
+
+        // Skill3 (R)
+        renderSingleSkillCooldown(g, "skill3", "R", startX + spacing * 3, y, size);
+    }
+
+    private void renderSingleSkillCooldown(Graphics g, String skillType, String keyBind, int x, int y, int size) {
         g.setColor(Color.GRAY);
         g.fillRect(x, y, size, size);
         g.setColor(Color.WHITE);
         g.drawRect(x, y, size, size);
-        g.drawString("Q", x + 5, y + 15); // Key bind
+        g.drawString(keyBind, x + 5, y + 15);
 
-        if (skillCooldowns.containsKey("skill1")) {
-            long lastUsed = skillCooldowns.get("skill1");
+        if (skillCooldowns.containsKey(skillType)) {
+            long lastUsed = skillCooldowns.get(skillType);
             long currentTime = System.currentTimeMillis();
             long elapsed = currentTime - lastUsed;
-            long cooldown = 3000;
+            long cooldown = skillCooldownDurations.getOrDefault(skillType, 2000L);
 
             if (elapsed < cooldown) {
                 int arc = (int) (360 * (1.0 - (double) elapsed / cooldown));

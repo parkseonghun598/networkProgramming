@@ -5,6 +5,9 @@ import common.monster.Monster;
 import common.player.Player;
 import common.skills.Skill;
 import common.skills.Skill1;
+import common.skills.Skill2;
+import common.skills.Skill3;
+import common.skills.Skill4;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -174,6 +177,15 @@ public class GameStateParser {
                     Skill skill = null;
                     if ("skill1".equals(type)) {
                         skill = new Skill1(id, playerId, x, y,
+                                common.enums.Direction.fromString(direction));
+                    } else if ("skill2".equals(type)) {
+                        skill = new Skill2(id, playerId, x, y,
+                                common.enums.Direction.fromString(direction));
+                    } else if ("skill3".equals(type)) {
+                        skill = new Skill3(id, playerId, x, y,
+                                common.enums.Direction.fromString(direction));
+                    } else if ("skill4".equals(type)) {
+                        skill = new Skill4(id, playerId, x, y,
                                 common.enums.Direction.fromString(direction));
                     }
 
