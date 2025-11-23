@@ -152,6 +152,10 @@ public class GamePanel extends JPanel implements KeyListener, PlayerInputHandler
         this.myPlayerId = id;
     }
 
+    public String getUsername() {
+        return currentUser != null ? currentUser.getUsername() : null;
+    }
+
     public void updateGameState(String jsonState) {
         GameStateParser.parseAndUpdate(jsonState, players, monsters, skills, portals, myPlayerId);
         String newBgPath = GameStateParser.parseBackgroundImagePath(jsonState);

@@ -50,7 +50,9 @@ public class ClientHandler implements Runnable {
 
             String inputLine;
             while ((inputLine = in.readLine()) != null) {
-                if (inputLine.contains("\"type\":\"PLAYER_UPDATE\"")) {
+                if (inputLine.contains("\"type\":\"USER_INFO\"")) {
+                    handleUserInfo(inputLine);
+                } else if (inputLine.contains("\"type\":\"PLAYER_UPDATE\"")) {
                     handlePlayerUpdate(inputLine);
                 } else if (inputLine.contains("\"type\":\"SKILL_USE\"")) {
                     handleSkillUse(inputLine);
@@ -133,11 +135,28 @@ public class ClientHandler implements Runnable {
         }
     }
 
+    private void handleUserInfo(String message) {
+        try {
+            String username = message.split("\"username\":\"")[1].split("\"")[0];
+            Player player = gameState.getPlayer(playerId);
+            if (player != null) {
+                player.setUsername(username);
+                System.out.println("Player " + playerId + " set username: " + username);
+            }
+        } catch (Exception e) {
+            System.err.println("Failed to handle user info: " + message);
+        }
+    }
+
     private void handleChat(String message) {
         try {
             String content = message.split("\"message\":\"")[1].split("\"")[0];
             String time = java.time.LocalTime.now().format(java.time.format.DateTimeFormatter.ofPattern("HH:mm:ss"));
-            String formattedMessage = String.format("[%s] %s", time, content);
+
+            Player player = gameState.getPlayer(playerId);
+            String username = player != null && player.getUsername() != null ? player.getUsername() : playerId;
+
+            String formattedMessage = String.format("[%s]%s:%s", time, username, content);
 
             String broadcastJson = String.format("{\"type\":\"CHAT\",\"payload\":{\"message\":\"%s\"}}",
                     formattedMessage);

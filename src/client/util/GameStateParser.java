@@ -78,6 +78,10 @@ public class GameStateParser {
 
         for (String playerStr : playersJson.split("\\},\\{")) {
             String id = playerStr.split("\"id\":\"")[1].split("\"")[0];
+            String username = id; // default to id
+            if (playerStr.contains("\"username\":\"")) {
+                username = playerStr.split("\"username\":\"")[1].split("\"")[0];
+            }
             int x = Integer.parseInt(playerStr.split("\"x\":")[1].split(",")[0]);
             int y = Integer.parseInt(playerStr.split("\"y\":")[1].split(",")[0]);
             String directionStr = "right"; // default
@@ -99,6 +103,7 @@ public class GameStateParser {
                 players.add(player);
             }
 
+            player.setUsername(username);
             player.setX(x);
             player.setY(y);
             player.setMapId(mapId);
