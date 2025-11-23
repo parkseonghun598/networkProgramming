@@ -62,8 +62,9 @@ public class GameStateSerializer {
         sb.append(",\"players\":[");
         for (Player p : players) {
             String directionStr = p.getDirection() != null ? p.getDirection().getValue() : "right";
-            sb.append(String.format("{\"id\":\"%s\",\"x\":%d,\"y\":%d,\"direction\":\"%s\",\"mapId\":\"%s\"}",
-                    p.getId(), p.getX(), p.getY(), directionStr, p.getMapId()));
+            String username = p.getUsername() != null ? p.getUsername() : p.getId();
+            sb.append(String.format("{\"id\":\"%s\",\"username\":\"%s\",\"x\":%d,\"y\":%d,\"direction\":\"%s\",\"mapId\":\"%s\"}",
+                    p.getId(), username, p.getX(), p.getY(), directionStr, p.getMapId()));
             sb.append(",");
         }
         if (!players.isEmpty()) {

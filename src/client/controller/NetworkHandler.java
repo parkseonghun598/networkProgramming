@@ -36,6 +36,13 @@ public class NetworkHandler implements Runnable {
                     // Manually parse WELCOME message to get player ID
                     String id = serverMessage.split("\"id\":\"")[1].split("\"}")[0];
                     gamePanel.setMyPlayerId(id);
+
+                    // Send username to server
+                    String username = gamePanel.getUsername();
+                    if (username != null) {
+                        String userInfoMsg = String.format("{\"type\":\"USER_INFO\",\"payload\":{\"username\":\"%s\"}}", username);
+                        sendMessage(userInfoMsg);
+                    }
                 } else if (serverMessage.contains("\"type\":\"GAME_STATE\"")) {
                     gamePanel.updateGameState(serverMessage);
                     gamePanel.repaint();

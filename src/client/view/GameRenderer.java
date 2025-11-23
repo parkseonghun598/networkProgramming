@@ -117,7 +117,11 @@ public class GameRenderer {
                 g.setColor(Color.GREEN);
                 g.drawRect(player.getX() - 2, player.getY() - 2, 104, 104);
             }
-            g.drawString(player.getId(), player.getX(), player.getY() - 5);
+
+            // Display username above player
+            String displayName = player.getUsername() != null ? player.getUsername() : player.getId();
+            g.setColor(Color.WHITE);
+            g.drawString(displayName, player.getX() + 25, player.getY() - 5);
         }
     }
 }

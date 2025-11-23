@@ -35,6 +35,15 @@ public class PlayerInputHandler {
             case KeyEvent.VK_Q:
                 callback.useSkill("skill1");
                 break;
+            case KeyEvent.VK_W:
+                callback.useSkill("skill2");
+                break;
+            case KeyEvent.VK_E:
+                callback.useSkill("skill4");
+                break;
+            case KeyEvent.VK_R:
+                callback.useSkill("skill3");
+                break;
             default:
                 return;
         }
