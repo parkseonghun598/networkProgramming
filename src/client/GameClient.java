@@ -1,14 +1,14 @@
 package client;
 
-import client.view.GameFrame;
+import client.view.LoginFrame;
 
 import javax.swing.SwingUtilities;
 
 public class GameClient {
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
-            GameFrame frame = new GameFrame();
-            frame.setVisible(true);
+            LoginFrame loginFrame = new LoginFrame();
+            loginFrame.setVisible(true);
         });
     }
 }
