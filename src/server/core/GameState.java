@@ -1,5 +1,6 @@
 package server.core;
 
+import common.item.Item;
 import common.monster.Monster;
 import common.player.Player;
 import common.skills.Skill;
@@ -16,11 +17,18 @@ public class GameState {
     private final Map<String, Player> players;
     private final List<Skill> skills;
     private final Map<String, GameMap> maps;
+    private final Map<String, List<Item>> mapItems; // 맵별 아이템 관리
 
     public GameState(Map<String, GameMap> maps) {
         this.maps = maps;
         this.players = new ConcurrentHashMap<>();
         this.skills = new CopyOnWriteArrayList<>();
+        this.mapItems = new ConcurrentHashMap<>();
+        
+        // 각 맵의 아이템 리스트 초기화
+        for (String mapId : maps.keySet()) {
+            mapItems.put(mapId, new CopyOnWriteArrayList<>());
+        }
     }
 
     public void update() throws InterruptedException {
@@ -131,5 +139,25 @@ public class GameState {
 
     public Map<String, GameMap> getMaps() {
         return maps;
+    }
+
+    public void addItem(String mapId, Item item) {
+        List<Item> items = mapItems.get(mapId);
+        if (items != null) {
+            items.add(item);
+            System.out.println("Added item " + item.getType() + " to map " + mapId);
+        }
+    }
+
+    public void removeItem(String mapId, String itemId) {
+        List<Item> items = mapItems.get(mapId);
+        if (items != null) {
+            items.removeIf(item -> item.getId().equals(itemId));
+        }
+    }
+
+    public List<Item> getItemsInMap(String mapId) {
+        List<Item> items = mapItems.get(mapId);
+        return items != null ? items : new CopyOnWriteArrayList<>();
     }
 }

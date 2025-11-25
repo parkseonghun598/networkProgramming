@@ -28,6 +28,31 @@ public class SpriteManager {
                 System.err.println("defaultWarrior sprite not found: " + defaultWarriorFile.getAbsolutePath());
             }
             
+            // Load NPC sprites
+            File npcWarriorFile = new File(NPC_WARRIOR_IMAGE_PATH);
+            if (npcWarriorFile.exists()) {
+                sprites.put("npc_warrior", ImageIO.read(npcWarriorFile));
+                System.out.println("Loaded npc_warrior sprite");
+            } else {
+                System.err.println("npc_warrior sprite not found: " + npcWarriorFile.getAbsolutePath());
+            }
+            
+            // Load item sprites from clothes folder
+            String[] itemTypes = {
+                "defaultWeapon", "bigWeapon", "blackBottom", "blackHat", "blueHat",
+                "brownTop", "defaultBottom", "defaultTop", "glove", "hair", "puppleTop", "shoes"
+            };
+            
+            for (String itemType : itemTypes) {
+                File itemFile = new File("../img/clothes/" + itemType + ".png");
+                if (itemFile.exists()) {
+                    sprites.put(itemType, ImageIO.read(itemFile));
+                    System.out.println("Loaded " + itemType + " sprite");
+                } else {
+                    System.err.println(itemType + " sprite not found: " + itemFile.getAbsolutePath());
+                }
+            }
+            
             // Monsters and effects
             sprites.put("그린 슬라임", new ImageIcon(GREEN_SLIME_IMAGE_PATH).getImage());
             sprites.put("portal", new ImageIcon(PORTAL_GIF_PATH).getImage());

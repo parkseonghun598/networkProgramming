@@ -43,6 +43,12 @@ public class PlayerInputHandler {
             case KeyEvent.VK_R:
                 callback.useSkill("skill3");
                 break;
+            case KeyEvent.VK_Z:
+                callback.pickupItem();
+                return; // 아이템 픽업은 서버에 직접 요청하므로 sendUpdate 호출 안함
+            case KeyEvent.VK_I:
+                callback.toggleInventory();
+                return; // 인벤토리는 UI만 토글
             default:
                 return;
         }
@@ -68,5 +74,7 @@ public class PlayerInputHandler {
         void useSkill(String skillType);
         void usePortal();
         void sendUpdate();
+        void pickupItem();
+        void toggleInventory();
     }
 }

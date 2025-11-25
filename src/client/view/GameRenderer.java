@@ -2,8 +2,10 @@ package client.view;
 
 import client.util.SpriteManager;
 import client.util.CharacterAnimator;
+import common.item.Item;
 import common.map.Portal;
 import common.monster.Monster;
+import common.npc.NPC;
 import common.player.Player;
 import common.skills.Skill;
 
@@ -18,7 +20,7 @@ public class GameRenderer {
 
     public static void render(Graphics g, BufferedImage background, String errorMessage,
             List<Monster> monsters, List<Skill> skills, List<Player> players,
-            List<Portal> portals, String myPlayerId, Map<String, CharacterAnimator> playerAnimators,
+            List<Portal> portals, List<NPC> npcs, List<Item> items, String myPlayerId, Map<String, CharacterAnimator> playerAnimators,
             int width, int height) {
         try {
             if (background != null) {
@@ -31,6 +33,8 @@ public class GameRenderer {
                 return;
             }
 
+            renderNpcs(g, npcs);
+            renderItems(g, items);
             renderPortals(g, portals);
             renderMonsters(g, monsters);
             renderSkills(g, skills);
@@ -158,6 +162,54 @@ public class GameRenderer {
             String displayName = player.getUsername() != null ? player.getUsername() : player.getId();
             g.setColor(Color.WHITE);
             g.drawString(displayName, player.getX() + 10, player.getY() - 5);
+        }
+    }
+
+    private static void renderNpcs(Graphics g, List<NPC> npcs) {
+        for (NPC npc : npcs) {
+            // NPC 스프라이트 가져오기
+            Image npcSprite = SpriteManager.getSprite(npc.getId());
+            
+            if (npcSprite != null) {
+                // NPC 크기
+                int npcWidth = 80;
+                int npcHeight = 80;
+                g.drawImage(npcSprite, npc.getX(), npc.getY(), npcWidth, npcHeight, null);
+                
+                // NPC 이름 표시
+                g.setColor(Color.WHITE);
+                g.drawString(npc.getName(), npc.getX() + 10, npc.getY() - 5);
+            } else {
+                // 폴백: 회색 사각형
+                g.setColor(Color.GRAY);
+                g.fillRect(npc.getX(), npc.getY(), 80, 80);
+                g.setColor(Color.WHITE);
+                g.drawString(npc.getName(), npc.getX() + 10, npc.getY() - 5);
+            }
+        }
+    }
+
+    private static void renderItems(Graphics g, List<Item> items) {
+        for (Item item : items) {
+            // 아이템 스프라이트 가져오기
+            Image itemSprite = SpriteManager.getSprite(item.getType());
+            
+            if (itemSprite != null) {
+                // 아이템 크기
+                int itemWidth = 40;
+                int itemHeight = 40;
+                g.drawImage(itemSprite, item.getX(), item.getY(), itemWidth, itemHeight, null);
+                
+                // 아이템 이름 표시
+                g.setColor(Color.YELLOW);
+                g.drawString(item.getName(), item.getX() - 5, item.getY() - 5);
+            } else {
+                // 폴백: 노란색 사각형
+                g.setColor(Color.ORANGE);
+                g.fillRect(item.getX(), item.getY(), 40, 40);
+                g.setColor(Color.YELLOW);
+                g.drawString(item.getName(), item.getX() - 5, item.getY() - 5);
+            }
         }
     }
 }

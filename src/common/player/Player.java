@@ -1,6 +1,10 @@
 package common.player;
 
 import common.enums.Direction;
+import common.item.Item;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class Player {
     private String id;
@@ -11,6 +15,7 @@ public class Player {
     private Direction direction;
     private String mapId = "hennesis";
     private String characterType = "defaultWarrior"; // 캐릭터 스킨
+    private List<Item> inventory = new ArrayList<>(); // 인벤토리
 
     public String getCharacterType() {
         return characterType;
@@ -78,5 +83,21 @@ public class Player {
 
     public void setDirection(String direction) {
         this.direction = Direction.fromString(direction);
+    }
+
+    public List<Item> getInventory() {
+        return inventory;
+    }
+
+    public void setInventory(List<Item> inventory) {
+        this.inventory = inventory;
+    }
+
+    public void addItemToInventory(Item item) {
+        this.inventory.add(item);
+    }
+
+    public void removeItemFromInventory(String itemId) {
+        this.inventory.removeIf(item -> item.getId().equals(itemId));
     }
 }

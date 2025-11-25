@@ -1,7 +1,9 @@
 package client.util;
 
+import common.item.Item;
 import common.map.Portal;
 import common.monster.Monster;
+import common.npc.NPC;
 import common.player.Player;
 import common.skills.Skill;
 import common.skills.Skill1;
@@ -16,7 +18,7 @@ import java.util.Optional;
 public class GameStateParser {
 
     public static void parseAndUpdate(String jsonState, List<Player> players,
-            List<Monster> monsters, List<Skill> skills, List<Portal> portals, String myPlayerId) {
+            List<Monster> monsters, List<Skill> skills, List<Portal> portals, List<NPC> npcs, List<Item> items, String myPlayerId) {
         try {
             if (jsonState.contains("\"players\":[")) {
                 parsePlayers(jsonState, players, myPlayerId);
@@ -31,6 +33,12 @@ public class GameStateParser {
             }
             if (jsonState.contains("\"portals\":[")) {
                 parsePortals(jsonState, portals);
+            }
+            if (jsonState.contains("\"npcs\":[")) {
+                parseNpcs(jsonState, npcs);
+            }
+            if (jsonState.contains("\"items\":[")) {
+                parseItems(jsonState, items);
             }
         } catch (Exception e) {
             System.err.println("Failed to parse game state: " + jsonState);
@@ -120,6 +128,31 @@ public class GameStateParser {
             player.setMapId(mapId);
             player.setCharacterType(characterType);
 
+            // Parse inventory
+            if (playerStr.contains("\"inventory\":[")) {
+                try {
+                    String inventoryJson = playerStr.split("\"inventory\":\\[")[1].split("\\]")[0];
+                    player.getInventory().clear();
+                    if (!inventoryJson.isEmpty() && !inventoryJson.equals("")) {
+                        for (String itemStr : inventoryJson.split("\\},\\{")) {
+                            try {
+                                String itemId = itemStr.split("\"id\":\"")[1].split("\"")[0];
+                                String itemType = itemStr.split("\"type\":\"")[1].split("\"")[0];
+                                String itemName = itemStr.split("\"name\":\"")[1].split("\"")[0];
+                                String itemSpritePath = itemStr.split("\"spritePath\":\"")[1].split("\"")[0];
+                                
+                                Item item = new Item(itemId, itemType, itemName, 0, 0, itemSpritePath);
+                                player.addItemToInventory(item);
+                            } catch (Exception e) {
+                                // Skip malformed item
+                            }
+                        }
+                    }
+                } catch (Exception e) {
+                    // No inventory or malformed
+                }
+            }
+
             // Only update direction and state for other players, not myPlayer
             if (!id.equals(myPlayerId)) {
                 player.setDirection(common.enums.Direction.fromString(directionStr));
@@ -203,6 +236,49 @@ public class GameStateParser {
                         skills.add(skill);
                     }
                 } catch (Exception e) {
+                }
+            }
+        }
+    }
+
+    private static void parseNpcs(String jsonState, List<NPC> npcs) {
+        npcs.clear();
+        String npcsJson = jsonState.split("\"npcs\":\\[")[1].split("\\]")[0];
+        if (!npcsJson.isEmpty()) {
+            for (String npcStr : npcsJson.split("\\},\\{")) {
+                try {
+                    String id = npcStr.split("\"id\":\"")[1].split("\"")[0];
+                    String name = npcStr.split("\"name\":\"")[1].split("\"")[0];
+                    int x = Integer.parseInt(npcStr.split("\"x\":")[1].split(",")[0]);
+                    int y = Integer.parseInt(npcStr.split("\"y\":")[1].split(",")[0]);
+                    String spritePath = npcStr.split("\"spritePath\":\"")[1].split("\"")[0];
+
+                    NPC npc = new NPC(id, name, x, y, spritePath);
+                    npcs.add(npc);
+                } catch (Exception e) {
+                    System.err.println("Failed to parse NPC: " + npcStr);
+                }
+            }
+        }
+    }
+
+    private static void parseItems(String jsonState, List<Item> items) {
+        items.clear();
+        String itemsJson = jsonState.split("\"items\":\\[")[1].split("\\]")[0];
+        if (!itemsJson.isEmpty()) {
+            for (String itemStr : itemsJson.split("\\},\\{")) {
+                try {
+                    String id = itemStr.split("\"id\":\"")[1].split("\"")[0];
+                    String type = itemStr.split("\"type\":\"")[1].split("\"")[0];
+                    String name = itemStr.split("\"name\":\"")[1].split("\"")[0];
+                    int x = Integer.parseInt(itemStr.split("\"x\":")[1].split(",")[0]);
+                    int y = Integer.parseInt(itemStr.split("\"y\":")[1].split(",")[0]);
+                    String spritePath = itemStr.split("\"spritePath\":\"")[1].split("\"")[0];
+
+                    Item item = new Item(id, type, name, x, y, spritePath);
+                    items.add(item);
+                } catch (Exception e) {
+                    System.err.println("Failed to parse Item: " + itemStr);
                 }
             }
         }

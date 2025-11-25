@@ -1,5 +1,6 @@
 package server.util;
 
+import common.item.Item;
 import common.monster.Monster;
 import common.player.Player;
 import common.skills.Skill;
@@ -26,6 +27,7 @@ public class GameStateSerializer {
         List<Monster> monstersInMap = gameState.getMonstersInMap(mapId);
         // Skills are currently global, could be filtered by mapId if needed
         List<Skill> skills = gameState.getAllSkills();
+        List<Item> itemsInMap = gameState.getItemsInMap(mapId);
 
         StringBuilder sb = new StringBuilder();
         sb.append("{\"type\":\"GAME_STATE\",\"payload\":{");
@@ -34,6 +36,8 @@ public class GameStateSerializer {
         appendMonsters(sb, monstersInMap);
         appendSkills(sb, skills);
         appendPortals(sb, map.getPortals());
+        appendNpcs(sb, map.getNpcs());
+        appendItems(sb, itemsInMap);
         sb.append("}}");
         return sb.toString();
     }
@@ -65,8 +69,22 @@ public class GameStateSerializer {
             String username = p.getUsername() != null ? p.getUsername() : p.getId();
             String characterType = p.getCharacterType() != null ? p.getCharacterType() : "defaultWarrior";
             String state = p.getState() != null ? p.getState() : "idle";
-            sb.append(String.format("{\"id\":\"%s\",\"username\":\"%s\",\"x\":%d,\"y\":%d,\"direction\":\"%s\",\"mapId\":\"%s\",\"characterType\":\"%s\",\"state\":\"%s\"}",
+            
+            sb.append(String.format("{\"id\":\"%s\",\"username\":\"%s\",\"x\":%d,\"y\":%d,\"direction\":\"%s\",\"mapId\":\"%s\",\"characterType\":\"%s\",\"state\":\"%s\"",
                     p.getId(), username, p.getX(), p.getY(), directionStr, p.getMapId(), characterType, state));
+            
+            // Append inventory
+            sb.append(",\"inventory\":[");
+            for (Item item : p.getInventory()) {
+                sb.append(String.format("{\"id\":\"%s\",\"type\":\"%s\",\"name\":\"%s\",\"spritePath\":\"%s\"}",
+                        item.getId(), item.getType(), item.getName(), item.getSpritePath().replace("\\", "/")));
+                sb.append(",");
+            }
+            if (!p.getInventory().isEmpty()) {
+                sb.deleteCharAt(sb.length() - 1);
+            }
+            sb.append("]}");
+            
             sb.append(",");
         }
         if (!players.isEmpty()) {
@@ -99,6 +117,34 @@ public class GameStateSerializer {
             sb.append(",");
         }
         if (!skills.isEmpty()) {
+            sb.deleteCharAt(sb.length() - 1);
+        }
+        sb.append("]");
+    }
+
+    private static void appendNpcs(StringBuilder sb, List<common.npc.NPC> npcs) {
+        sb.append(",\"npcs\":[");
+        for (common.npc.NPC npc : npcs) {
+            sb.append(String.format(
+                    "{\"id\":\"%s\",\"name\":\"%s\",\"x\":%d,\"y\":%d,\"spritePath\":\"%s\"}",
+                    npc.getId(), npc.getName(), npc.getX(), npc.getY(), npc.getSpritePath().replace("\\", "/")));
+            sb.append(",");
+        }
+        if (!npcs.isEmpty()) {
+            sb.deleteCharAt(sb.length() - 1);
+        }
+        sb.append("]");
+    }
+
+    private static void appendItems(StringBuilder sb, List<Item> items) {
+        sb.append(",\"items\":[");
+        for (Item item : items) {
+            sb.append(String.format(
+                    "{\"id\":\"%s\",\"type\":\"%s\",\"name\":\"%s\",\"x\":%d,\"y\":%d,\"spritePath\":\"%s\"}",
+                    item.getId(), item.getType(), item.getName(), item.getX(), item.getY(), item.getSpritePath().replace("\\", "/")));
+            sb.append(",");
+        }
+        if (!items.isEmpty()) {
             sb.deleteCharAt(sb.length() - 1);
         }
         sb.append("]");

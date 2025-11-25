@@ -2,9 +2,11 @@ package client.view;
 
 import client.controller.NetworkHandler;
 import client.controller.PlayerInputHandler;
+import client.controller.NpcDialogHandler;
 import client.util.GameStateParser;
 import client.util.SpriteManager;
 import client.util.CharacterAnimator;
+import common.inventory.Inventory;
 import common.monster.Monster;
 import common.player.Player;
 import common.skills.Skill;
@@ -22,9 +24,12 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-public class GamePanel extends JPanel implements KeyListener, PlayerInputHandler.PlayerMovementCallback {
+public class GamePanel extends JPanel implements KeyListener, MouseListener, PlayerInputHandler.PlayerMovementCallback {
 
     private NetworkHandler networkHandler;
+    private NpcDialogHandler npcDialogHandler;
+    private InventoryPanel inventoryPanel;
+    private Inventory inventory;
     private String errorMessage;
     private String myPlayerId;
     private User currentUser;
@@ -33,6 +38,8 @@ public class GamePanel extends JPanel implements KeyListener, PlayerInputHandler
     private final List<Monster> monsters;
     private final List<Skill> skills;
     private final List<common.map.Portal> portals;
+    private final List<common.npc.NPC> npcs;
+    private final List<common.item.Item> items;
     private String currentBackgroundImagePath;
     private BufferedImage background;
     
@@ -55,11 +62,14 @@ public class GamePanel extends JPanel implements KeyListener, PlayerInputHandler
         this.monsters = new CopyOnWriteArrayList<>();
         this.skills = new CopyOnWriteArrayList<>();
         this.portals = new CopyOnWriteArrayList<>();
+        this.npcs = new CopyOnWriteArrayList<>();
+        this.items = new CopyOnWriteArrayList<>();
         this.playerAnimators = new ConcurrentHashMap<>();
 
         setPreferredSize(new Dimension(800, 600));
         setFocusable(true);
         addKeyListener(this);
+        addMouseListener(this);
         setLayout(null); // Use absolute positioning
 
         // Initialize Chat UI
@@ -99,9 +109,19 @@ public class GamePanel extends JPanel implements KeyListener, PlayerInputHandler
             }
         });
 
+        // Initialize inventory
+        inventory = new Inventory();
+        inventoryPanel = new InventoryPanel(inventory);
+        inventoryPanel.hide();
+        add(inventoryPanel);
+
         try {
             SpriteManager.loadSprites();
             networkHandler = new NetworkHandler(this, "localhost", 12345);
+            npcDialogHandler = new NpcDialogHandler(this, networkHandler, this::getMyPlayer);
+            inventoryPanel.setVisible(false);
+            add(inventoryPanel);
+            
             new Thread(networkHandler).start();
         } catch (Exception e) {
             showError("Failed to connect to the server or load assets.");
@@ -170,7 +190,7 @@ public class GamePanel extends JPanel implements KeyListener, PlayerInputHandler
     }
 
     public void updateGameState(String jsonState) {
-        GameStateParser.parseAndUpdate(jsonState, players, monsters, skills, portals, myPlayerId);
+        GameStateParser.parseAndUpdate(jsonState, players, monsters, skills, portals, npcs, items, myPlayerId);
         String newBgPath = GameStateParser.parseBackgroundImagePath(jsonState);
         if (newBgPath != null) {
             setBackgroundImage(newBgPath);
@@ -178,6 +198,11 @@ public class GamePanel extends JPanel implements KeyListener, PlayerInputHandler
         
         // 플레이어 애니메이터 업데이트
         updatePlayerAnimators();
+        
+        // 인벤토리 업데이트
+        if (inventoryPanel != null) {
+            inventoryPanel.updateInventory();
+        }
         
         this.errorMessage = null;
     }
@@ -256,6 +281,19 @@ public class GamePanel extends JPanel implements KeyListener, PlayerInputHandler
             return;
         }
 
+        // I 키: 인벤토리 토글
+        if (e.getKeyCode() == KeyEvent.VK_I) {
+            inventoryPanel.toggleVisibility();
+            repaint();
+            return;
+        }
+
+        // Z 키: 아이템 습득
+        if (e.getKeyCode() == KeyEvent.VK_Z) {
+            pickupItem();
+            return;
+        }
+
         if (myPlayerId == null)
             return;
         PlayerInputHandler.handleKeyPress(e, getMyPlayer(), this);
@@ -329,7 +367,7 @@ public class GamePanel extends JPanel implements KeyListener, PlayerInputHandler
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
-        GameRenderer.render(g, background, errorMessage, monsters, skills, players, portals,
+        GameRenderer.render(g, background, errorMessage, monsters, skills, players, portals, npcs, items,
                 myPlayerId, playerAnimators, getWidth(), getHeight());
 
         // Render Cooldown UI
@@ -401,5 +439,69 @@ public class GamePanel extends JPanel implements KeyListener, PlayerInputHandler
                 myPlayer.getX(), myPlayer.getY(), myPlayer.getState(),
                 myPlayer.getDirection().getValue());
         networkHandler.sendMessage(updateMsg);
+    }
+
+    // MouseListener implementation
+    @Override
+    public void mouseClicked(MouseEvent e) {
+        npcDialogHandler.handleNpcClick(e.getX(), e.getY(), npcs);
+    }
+
+    @Override
+    public void mousePressed(MouseEvent e) {}
+
+    @Override
+    public void mouseReleased(MouseEvent e) {}
+
+    @Override
+    public void mouseEntered(MouseEvent e) {}
+
+    @Override
+    public void mouseExited(MouseEvent e) {}
+
+    @Override
+    public void pickupItem() {
+        Player myPlayer = getMyPlayer();
+        if (myPlayer == null) return;
+
+        // 인벤토리가 가득 찼는지 확인
+        if (inventory.isFull()) {
+            System.out.println("Inventory is full!");
+            return;
+        }
+
+        // 근처 아이템 찾기 (픽업 범위: 80픽셀)
+        final int PICKUP_RANGE = 80;
+        for (common.item.Item item : items) {
+            int dx = item.getX() - myPlayer.getX();
+            int dy = item.getY() - myPlayer.getY();
+            double distance = Math.sqrt(dx * dx + dy * dy);
+
+            if (distance <= PICKUP_RANGE) {
+                // 서버에 아이템 픽업 요청
+                String msg = String.format(
+                    "{\"type\":\"PICKUP_ITEM\",\"payload\":{\"itemId\":\"%s\"}}",
+                    item.getId()
+                );
+                networkHandler.sendMessage(msg);
+                System.out.println("Requested pickup for item: " + item.getId());
+                break; // 한 번에 하나만 습득
+            }
+        }
+    }
+
+    @Override
+    public void toggleInventory() {
+        inventoryPanel.toggleVisibility();
+        repaint();
+    }
+
+    public void addItemToInventory(common.item.Item item) {
+        if (inventory.addItem(item)) {
+            System.out.println("Added item to inventory: " + item.getName());
+            inventoryPanel.updateInventory();
+        } else {
+            System.out.println("Failed to add item: inventory full");
+        }
     }
 }
