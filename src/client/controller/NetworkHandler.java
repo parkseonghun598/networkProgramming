@@ -37,10 +37,12 @@ public class NetworkHandler implements Runnable {
                     String id = serverMessage.split("\"id\":\"")[1].split("\"}")[0];
                     gamePanel.setMyPlayerId(id);
 
-                    // Send username to server
+                    // Send username and character type to server
                     String username = gamePanel.getUsername();
+                    String characterType = gamePanel.getCharacterType();
                     if (username != null) {
-                        String userInfoMsg = String.format("{\"type\":\"USER_INFO\",\"payload\":{\"username\":\"%s\"}}", username);
+                        String userInfoMsg = String.format("{\"type\":\"USER_INFO\",\"payload\":{\"username\":\"%s\",\"characterType\":\"%s\"}}", 
+                            username, characterType != null ? characterType : "defaultWarrior");
                         sendMessage(userInfoMsg);
                     }
                 } else if (serverMessage.contains("\"type\":\"GAME_STATE\"")) {

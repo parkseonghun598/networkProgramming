@@ -138,10 +138,15 @@ public class ClientHandler implements Runnable {
     private void handleUserInfo(String message) {
         try {
             String username = message.split("\"username\":\"")[1].split("\"")[0];
+            String characterType = "defaultWarrior"; // default
+            if (message.contains("\"characterType\":\"")) {
+                characterType = message.split("\"characterType\":\"")[1].split("\"")[0];
+            }
             Player player = gameState.getPlayer(playerId);
             if (player != null) {
                 player.setUsername(username);
-                System.out.println("Player " + playerId + " set username: " + username);
+                player.setCharacterType(characterType);
+                System.out.println("Player " + playerId + " set username: " + username + ", character: " + characterType);
             }
         } catch (Exception e) {
             System.err.println("Failed to handle user info: " + message);

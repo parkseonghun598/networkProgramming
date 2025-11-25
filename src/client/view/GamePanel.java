@@ -4,6 +4,7 @@ import client.controller.NetworkHandler;
 import client.controller.PlayerInputHandler;
 import client.util.GameStateParser;
 import client.util.SpriteManager;
+import client.util.CharacterAnimator;
 import common.monster.Monster;
 import common.player.Player;
 import common.skills.Skill;
@@ -17,6 +18,8 @@ import java.io.File;
 import java.io.IOException;
 import javax.imageio.ImageIO;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 public class GamePanel extends JPanel implements KeyListener, PlayerInputHandler.PlayerMovementCallback {
@@ -32,6 +35,9 @@ public class GamePanel extends JPanel implements KeyListener, PlayerInputHandler
     private final List<common.map.Portal> portals;
     private String currentBackgroundImagePath;
     private BufferedImage background;
+    
+    // 플레이어별 애니메이터 관리
+    private final Map<String, CharacterAnimator> playerAnimators;
 
     private double velocityY = 0;
     private boolean isJumping = false;
@@ -49,6 +55,7 @@ public class GamePanel extends JPanel implements KeyListener, PlayerInputHandler
         this.monsters = new CopyOnWriteArrayList<>();
         this.skills = new CopyOnWriteArrayList<>();
         this.portals = new CopyOnWriteArrayList<>();
+        this.playerAnimators = new ConcurrentHashMap<>();
 
         setPreferredSize(new Dimension(800, 600));
         setFocusable(true);
@@ -156,13 +163,64 @@ public class GamePanel extends JPanel implements KeyListener, PlayerInputHandler
         return currentUser != null ? currentUser.getUsername() : null;
     }
 
+    public String getCharacterType() {
+        return currentUser != null ? currentUser.getCharacterType() : "defaultWarrior";
+    }
+
     public void updateGameState(String jsonState) {
         GameStateParser.parseAndUpdate(jsonState, players, monsters, skills, portals, myPlayerId);
         String newBgPath = GameStateParser.parseBackgroundImagePath(jsonState);
         if (newBgPath != null) {
             setBackgroundImage(newBgPath);
         }
+        
+        // 플레이어 애니메이터 업데이트
+        updatePlayerAnimators();
+        
         this.errorMessage = null;
+    }
+    
+    private void updatePlayerAnimators() {
+        long currentTime = System.currentTimeMillis();
+        
+        for (Player player : players) {
+            String playerId = player.getId();
+            String characterType = player.getCharacterType();
+            
+            // 애니메이터가 없으면 생성
+            if (!playerAnimators.containsKey(playerId)) {
+                CharacterAnimator animator = new CharacterAnimator(characterType);
+                playerAnimators.put(playerId, animator);
+                System.out.println("Created animator for player " + playerId + " with character " + characterType);
+            }
+            
+            // 플레이어 상태에 따라 애니메이션 설정
+            CharacterAnimator animator = playerAnimators.get(playerId);
+            
+            // 내 플레이어이고 공격 애니메이션 중이면 attack 유지
+            if (playerId.equals(myPlayerId) && 
+                currentTime - lastAttackTime < ATTACK_ANIMATION_DURATION) {
+                animator.setState("attack");
+                continue;
+            }
+            
+            String state = player.getState();
+            
+            if (state == null) {
+                animator.setState("idle");
+            } else if (state.equals("jump")) {
+                animator.setState("jump");
+            } else if (state.equals("move")) {
+                animator.setState("move");
+            } else {
+                animator.setState("idle");
+            }
+        }
+        
+        // 삭제된 플레이어의 애니메이터 제거
+        playerAnimators.keySet().removeIf(playerId -> 
+            players.stream().noneMatch(p -> p.getId().equals(playerId))
+        );
     }
 
     public void setBackgroundImage(String path) {
@@ -227,6 +285,9 @@ public class GamePanel extends JPanel implements KeyListener, PlayerInputHandler
         put("skill3", 5000L);
         put("skill4", 4000L);
     }};
+    
+    private long lastAttackTime = 0;
+    private static final long ATTACK_ANIMATION_DURATION = 400; // 공격 애니메이션 지속 시간 (밀리초)
 
     @Override
     public void useSkill(String skillType) {
@@ -254,13 +315,20 @@ public class GamePanel extends JPanel implements KeyListener, PlayerInputHandler
                 skillType, direction);
         networkHandler.sendMessage(skillMsg);
         System.out.println("Skill used: " + skillType + " in direction: " + direction);
+        
+        // 공격 애니메이션 트리거
+        lastAttackTime = currentTime;
+        CharacterAnimator myAnimator = playerAnimators.get(myPlayerId);
+        if (myAnimator != null) {
+            myAnimator.setState("attack");
+        }
     }
 
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
         GameRenderer.render(g, background, errorMessage, monsters, skills, players, portals,
-                myPlayerId, getWidth(), getHeight());
+                myPlayerId, playerAnimators, getWidth(), getHeight());
 
         // Render Cooldown UI
         renderCooldownUI(g);

@@ -10,6 +10,15 @@ public class Player {
     private String state; // "idle", "move", "jump"
     private Direction direction;
     private String mapId = "hennesis";
+    private String characterType = "defaultWarrior"; // 캐릭터 스킨
+
+    public String getCharacterType() {
+        return characterType;
+    }
+
+    public void setCharacterType(String characterType) {
+        this.characterType = characterType;
+    }
 
     public String getMapId() {
         return mapId;

@@ -16,11 +16,24 @@ public class SpriteManager {
 
     public static void loadSprites() {
         try {
+            // Legacy player sprite
             sprites.put("player", ImageIO.read(new File(PLAYER_IMAGE_PATH)));
+            
+            // Load defaultWarrior sprite (stand animation frame 0)
+            File defaultWarriorFile = new File("../img/character/defaultWarrior/stand1_0.png");
+            if (defaultWarriorFile.exists()) {
+                sprites.put("defaultWarrior", ImageIO.read(defaultWarriorFile));
+                System.out.println("Loaded defaultWarrior sprite");
+            } else {
+                System.err.println("defaultWarrior sprite not found: " + defaultWarriorFile.getAbsolutePath());
+            }
+            
+            // Monsters and effects
             sprites.put("그린 슬라임", new ImageIcon(GREEN_SLIME_IMAGE_PATH).getImage());
             sprites.put("portal", new ImageIcon(PORTAL_GIF_PATH).getImage());
         } catch (IOException e) {
-            System.err.println("Failed to load sprites.");
+            System.err.println("Failed to load sprites: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
