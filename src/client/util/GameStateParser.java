@@ -99,6 +99,10 @@ public class GameStateParser {
             if (playerStr.contains("\"characterType\":\"")) {
                 characterType = playerStr.split("\"characterType\":\"")[1].split("\"")[0];
             }
+            String state = "idle"; // default
+            if (playerStr.contains("\"state\":\"")) {
+                state = playerStr.split("\"state\":\"")[1].split("\"")[0];
+            }
 
             Optional<Player> existingPlayerOpt = players.stream().filter(p -> p.getId().equals(id)).findFirst();
             Player player;
@@ -116,9 +120,10 @@ public class GameStateParser {
             player.setMapId(mapId);
             player.setCharacterType(characterType);
 
-            // Only update direction for other players, not myPlayer
+            // Only update direction and state for other players, not myPlayer
             if (!id.equals(myPlayerId)) {
                 player.setDirection(common.enums.Direction.fromString(directionStr));
+                player.setState(state);
             }
             receivedPlayers.add(player);
         }

@@ -97,6 +97,11 @@ public class CharacterAnimator {
             this.currentFrame = 0; // 상태가 변경되면 프레임을 초기화
             this.lastFrameTime = System.currentTimeMillis();
         }
+        
+        // idle 상태로 전환될 때마다 프레임을 0으로 고정
+        if ("idle".equals(state)) {
+            this.currentFrame = 0;
+        }
     }
 
     /**
@@ -115,6 +120,7 @@ public class CharacterAnimator {
 
         // idle 상태일 때는 애니메이션 없이 첫 번째 프레임만 반환
         if ("idle".equals(currentState)) {
+            currentFrame = 0; // idle 상태에서는 항상 0번 프레임으로 고정
             return frames[0];
         }
 

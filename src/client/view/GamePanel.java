@@ -142,6 +142,8 @@ public class GamePanel extends JPanel implements KeyListener, PlayerInputHandler
                 newY = GROUND_Y;
                 isJumping = false;
                 velocityY = 0;
+                // 점프가 끝났으므로 idle 상태로 변경
+                myPlayer.setState("idle");
             }
             myPlayer.setY(newY);
             sendPlayerUpdate();

@@ -64,8 +64,9 @@ public class GameStateSerializer {
             String directionStr = p.getDirection() != null ? p.getDirection().getValue() : "right";
             String username = p.getUsername() != null ? p.getUsername() : p.getId();
             String characterType = p.getCharacterType() != null ? p.getCharacterType() : "defaultWarrior";
-            sb.append(String.format("{\"id\":\"%s\",\"username\":\"%s\",\"x\":%d,\"y\":%d,\"direction\":\"%s\",\"mapId\":\"%s\",\"characterType\":\"%s\"}",
-                    p.getId(), username, p.getX(), p.getY(), directionStr, p.getMapId(), characterType));
+            String state = p.getState() != null ? p.getState() : "idle";
+            sb.append(String.format("{\"id\":\"%s\",\"username\":\"%s\",\"x\":%d,\"y\":%d,\"direction\":\"%s\",\"mapId\":\"%s\",\"characterType\":\"%s\",\"state\":\"%s\"}",
+                    p.getId(), username, p.getX(), p.getY(), directionStr, p.getMapId(), characterType, state));
             sb.append(",");
         }
         if (!players.isEmpty()) {

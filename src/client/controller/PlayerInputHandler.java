@@ -10,7 +10,6 @@ public class PlayerInputHandler {
         if (myPlayer == null) return;
 
         int x = myPlayer.getX();
-        int y = myPlayer.getY();
 
         switch (e.getKeyCode()) {
             case KeyEvent.VK_LEFT:
@@ -56,6 +55,8 @@ public class PlayerInputHandler {
         switch (e.getKeyCode()) {
             case KeyEvent.VK_LEFT:
             case KeyEvent.VK_RIGHT:
+                // 좌우 이동 키를 놓으면 idle 상태로 변경
+                myPlayer.setState("idle");
                 callback.sendUpdate();
                 break;
         }

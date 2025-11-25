@@ -128,32 +128,36 @@ public class GameRenderer {
                 }
             }
             
+            // 캐릭터 크기 설정
+            int characterWidth = 60;
+            int characterHeight = 60;
+            
             // 방향에 따라 이미지 뒤집기
             if (playerSprite != null) {
                 common.enums.Direction direction = player.getDirection();
                 if (direction != null && direction == common.enums.Direction.RIGHT) {
                     // 오른쪽을 보고 있으면 이미지를 뒤집어서 그리기
-                    g.drawImage(playerSprite, player.getX() + 100, player.getY(), -100, 100, null);
+                    g.drawImage(playerSprite, player.getX() + characterWidth, player.getY(), -characterWidth, characterHeight, null);
                 } else {
                     // 왼쪽을 보고 있으면 정상적으로 그리기
-                    g.drawImage(playerSprite, player.getX(), player.getY(), 100, 100, null);
+                    g.drawImage(playerSprite, player.getX(), player.getY(), characterWidth, characterHeight, null);
                 }
             } else {
                 // 최종 폴백: 파란 사각형
                 g.setColor(Color.BLUE);
-                g.fillRect(player.getX(), player.getY(), 100, 100);
+                g.fillRect(player.getX(), player.getY(), characterWidth, characterHeight);
             }
 
             // 내 플레이어는 초록색 테두리 표시
             if (player.getId() != null && player.getId().equals(myPlayerId)) {
                 g.setColor(Color.GREEN);
-                g.drawRect(player.getX() - 2, player.getY() - 2, 104, 104);
+                g.drawRect(player.getX() - 2, player.getY() - 2, characterWidth + 4, characterHeight + 4);
             }
 
             // 플레이어 위에 유저명 표시
             String displayName = player.getUsername() != null ? player.getUsername() : player.getId();
             g.setColor(Color.WHITE);
-            g.drawString(displayName, player.getX() + 25, player.getY() - 5);
+            g.drawString(displayName, player.getX() + 10, player.getY() - 5);
         }
     }
 }

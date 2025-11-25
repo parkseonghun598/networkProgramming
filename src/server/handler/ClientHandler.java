@@ -90,8 +90,8 @@ public class ClientHandler implements Runnable {
             return;
 
         for (common.map.Portal portal : currentMap.getPortals()) {
-            // Player dimensions are hardcoded as 100x100 in the renderer
-            if (portal.isPlayerInside(player.getX(), player.getY(), 100, 100)) {
+            // Player dimensions: 60x60
+            if (portal.isPlayerInside(player.getX(), player.getY(), 60, 60)) {
                 player.setMapId(portal.getTargetMapId());
                 player.setX(portal.getTargetX());
                 player.setY(portal.getTargetY());
