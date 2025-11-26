@@ -7,6 +7,8 @@ import common.item.Item;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -16,6 +18,7 @@ public class InventoryPanel extends JPanel {
     private Inventory inventory;
     private boolean isVisible = false;
     private int mesos = 0; // 현재 메소
+    private Point initialClick; // 드래그 시작 위치
 
     public InventoryPanel(Inventory inventory) {
         this.inventory = inventory;
@@ -30,6 +33,55 @@ public class InventoryPanel extends JPanel {
         } catch (IOException e) {
             System.err.println("Failed to load inventory interface: " + e.getMessage());
         }
+
+        // 드래그 기능 추가
+        addDragListeners();
+    }
+
+    private void addDragListeners() {
+        MouseAdapter dragListener = new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                if (isVisible) {
+                    initialClick = e.getPoint();
+                }
+            }
+
+            @Override
+            public void mouseDragged(MouseEvent e) {
+                if (isVisible && initialClick != null) {
+                    // 현재 패널 위치 가져오기
+                    int thisX = getLocation().x;
+                    int thisY = getLocation().y;
+
+                    // 마우스 이동 거리 계산
+                    int xMoved = e.getX() - initialClick.x;
+                    int yMoved = e.getY() - initialClick.y;
+
+                    // 새 위치 계산
+                    int newX = thisX + xMoved;
+                    int newY = thisY + yMoved;
+
+                    // 화면 밖으로 나가지 않도록 제한 (부모 컨테이너 기준)
+                    Container parent = getParent();
+                    if (parent != null) {
+                        newX = Math.max(0, Math.min(newX, parent.getWidth() - getWidth()));
+                        newY = Math.max(0, Math.min(newY, parent.getHeight() - getHeight()));
+                    }
+
+                    // 패널 위치 업데이트
+                    setLocation(newX, newY);
+                }
+            }
+
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                initialClick = null;
+            }
+        };
+
+        addMouseListener(dragListener);
+        addMouseMotionListener(dragListener);
     }
 
     @Override

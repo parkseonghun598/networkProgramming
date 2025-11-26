@@ -139,6 +139,24 @@ public class GameStateParser {
                     // Keep default
                 }
             }
+            
+            // Parse equipped items
+            String equippedWeapon = "none"; // default
+            if (playerStr.contains("\"equippedWeapon\":\"")) {
+                equippedWeapon = playerStr.split("\"equippedWeapon\":\"")[1].split("\"")[0];
+            }
+            String equippedHat = "none"; // default
+            if (playerStr.contains("\"equippedHat\":\"")) {
+                equippedHat = playerStr.split("\"equippedHat\":\"")[1].split("\"")[0];
+            }
+            String equippedTop = "none"; // default
+            if (playerStr.contains("\"equippedTop\":\"")) {
+                equippedTop = playerStr.split("\"equippedTop\":\"")[1].split("\"")[0];
+            }
+            String equippedBottom = "none"; // default
+            if (playerStr.contains("\"equippedBottom\":\"")) {
+                equippedBottom = playerStr.split("\"equippedBottom\":\"")[1].split("\"")[0];
+            }
 
             Optional<Player> existingPlayerOpt = players.stream().filter(p -> p.getId().equals(id)).findFirst();
             Player player;
@@ -156,6 +174,12 @@ public class GameStateParser {
             player.setMapId(mapId);
             player.setCharacterType(characterType);
             player.setMesos(mesos);
+            
+            // Set equipped items
+            player.setEquippedWeapon(equippedWeapon);
+            player.setEquippedHat(equippedHat);
+            player.setEquippedTop(equippedTop);
+            player.setEquippedBottom(equippedBottom);
 
             // Parse inventory
             if (playerStr.contains("\"inventory\":[")) {

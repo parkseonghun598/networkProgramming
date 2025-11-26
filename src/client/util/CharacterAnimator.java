@@ -12,17 +12,29 @@ import java.util.Map;
  * 각 캐릭터의 상태(idle, walk, jump, attack)에 따른 스프라이트 애니메이션을 관리합니다.
  */
 public class CharacterAnimator {
-    private String characterType;
+    private String characterFolderPath; // 착용 아이템 조합을 포함한 폴더 경로
     private Map<String, Image[]> animations;
     private int currentFrame = 0;
     private long lastFrameTime = 0;
     private int frameDelay = 100; // 밀리초 단위 (100ms = 0.1초)
     private String currentState = "idle";
 
-    public CharacterAnimator(String characterType) {
-        this.characterType = characterType;
+    public CharacterAnimator(String characterFolderPath) {
+        this.characterFolderPath = characterFolderPath;
         this.animations = new HashMap<>();
         loadAnimations();
+    }
+
+    /**
+     * 착용 아이템이 변경되었을 때 애니메이션을 다시 로드합니다.
+     */
+    public void updateCharacterAppearance(String newCharacterFolderPath) {
+        if (!this.characterFolderPath.equals(newCharacterFolderPath)) {
+            this.characterFolderPath = newCharacterFolderPath;
+            this.animations.clear();
+            loadAnimations();
+            System.out.println("Updated character appearance to: " + newCharacterFolderPath);
+        }
     }
 
     /**
@@ -30,17 +42,15 @@ public class CharacterAnimator {
      */
     private void loadAnimations() {
         try {
-            String basePath = "../img/character/" + characterType + "/";
+            String basePath = "../img/character/" + characterFolderPath + "/";
 
-            // Stand (idle) 애니메이션: stand1_0 ~ stand1_3
-            Image[] standFrames = new Image[4];
-            for (int i = 0; i < 4; i++) {
-                File file = new File(basePath + "stand1_" + i + ".png");
-                if (file.exists()) {
-                    standFrames[i] = ImageIO.read(file);
-                } else {
-                    System.err.println("Missing stand frame: " + file.getPath());
-                }
+            // Stand (idle) 애니메이션: stand1_0만 사용 (정적 프레임)
+            Image[] standFrames = new Image[1];
+            File standFile = new File(basePath + "stand1_0.png");
+            if (standFile.exists()) {
+                standFrames[0] = ImageIO.read(standFile);
+            } else {
+                System.err.println("Missing stand frame: " + standFile.getPath());
             }
             animations.put("idle", standFrames);
 
@@ -80,9 +90,9 @@ public class CharacterAnimator {
             }
             animations.put("attack", swingFrames);
 
-            System.out.println("Loaded animations for " + characterType);
+            System.out.println("Loaded animations for " + characterFolderPath);
         } catch (IOException e) {
-            System.err.println("Failed to load animations for " + characterType + ": " + e.getMessage());
+            System.err.println("Failed to load animations for " + characterFolderPath + ": " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -161,10 +171,10 @@ public class CharacterAnimator {
     }
 
     /**
-     * 캐릭터 타입을 반환합니다.
+     * 현재 캐릭터 폴더 경로를 반환합니다.
      */
-    public String getCharacterType() {
-        return characterType;
+    public String getCharacterFolderPath() {
+        return characterFolderPath;
     }
 }
 

@@ -216,13 +216,19 @@ public class GamePanel extends JPanel implements KeyListener, MouseListener, Pla
         
         for (Player player : players) {
             String playerId = player.getId();
-            String characterType = player.getCharacterType();
+            String characterFolderPath = player.getCharacterFolderPath(); // 착용 아이템 조합 경로
             
             // 애니메이터가 없으면 생성
             if (!playerAnimators.containsKey(playerId)) {
-                CharacterAnimator animator = new CharacterAnimator(characterType);
+                CharacterAnimator animator = new CharacterAnimator(characterFolderPath);
                 playerAnimators.put(playerId, animator);
-                System.out.println("Created animator for player " + playerId + " with character " + characterType);
+                System.out.println("Created animator for player " + playerId + " with appearance " + characterFolderPath);
+            } else {
+                // 착용 아이템이 변경되었는지 확인하고 애니메이터 업데이트
+                CharacterAnimator existingAnimator = playerAnimators.get(playerId);
+                if (!existingAnimator.getCharacterFolderPath().equals(characterFolderPath)) {
+                    existingAnimator.updateCharacterAppearance(characterFolderPath);
+                }
             }
             
             // 플레이어 상태에 따라 애니메이션 설정
