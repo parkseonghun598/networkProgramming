@@ -16,6 +16,7 @@ public class Player {
     private String mapId = "hennesis";
     private String characterType = "defaultWarrior"; // 캐릭터 스킨
     private List<Item> inventory = new ArrayList<>(); // 인벤토리
+    private int mesos = 0; // 메소 (게임 화폐)
 
     public String getCharacterType() {
         return characterType;
@@ -99,5 +100,25 @@ public class Player {
 
     public void removeItemFromInventory(String itemId) {
         this.inventory.removeIf(item -> item.getId().equals(itemId));
+    }
+
+    public int getMesos() {
+        return mesos;
+    }
+
+    public void setMesos(int mesos) {
+        this.mesos = mesos;
+    }
+
+    public void addMesos(int amount) {
+        this.mesos += amount;
+    }
+
+    public boolean removeMesos(int amount) {
+        if (this.mesos >= amount) {
+            this.mesos -= amount;
+            return true;
+        }
+        return false;
     }
 }

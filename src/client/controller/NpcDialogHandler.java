@@ -53,8 +53,16 @@ public class NpcDialogHandler {
                         @Override
                         public void onDialogComplete() {
                             closeNpcDialog();
-                            // 무기 아이템 드롭 요청
+                            // 5개 아이템 드롭 요청 (1행 4개 + 2행 1개)
                             requestItemDrop("defaultWeapon");
+                            try { Thread.sleep(100); } catch (InterruptedException e) {}
+                            requestItemDrop("bigWeapon");
+                            try { Thread.sleep(100); } catch (InterruptedException e) {}
+                            requestItemDrop("blackHat");
+                            try { Thread.sleep(100); } catch (InterruptedException e) {}
+                            requestItemDrop("glove");
+                            try { Thread.sleep(100); } catch (InterruptedException e) {}
+                            requestItemDrop("shoes");
                         }
 
                         @Override

@@ -81,13 +81,33 @@ public class GameStateParser {
 
     private static void parsePlayers(String jsonState, List<Player> players, String myPlayerId) {
         List<Player> receivedPlayers = new ArrayList<>();
-        String playersJson = jsonState.split("\"players\":\\[")[1].split("\\]")[0];
+        String playersJson = jsonState.split("\"players\":\\[")[1];
+        
+        // Find the closing bracket for players array (handle nested arrays)
+        int bracketCount = 0;
+        int endIndex = 0;
+        for (int i = 0; i < playersJson.length(); i++) {
+            char c = playersJson.charAt(i);
+            if (c == '[') bracketCount++;
+            else if (c == ']') {
+                bracketCount--;
+                if (bracketCount == -1) {
+                    endIndex = i;
+                    break;
+                }
+            }
+        }
+        playersJson = playersJson.substring(0, endIndex);
+        
         if (playersJson.isEmpty()) {
             players.clear();
             return;
         }
 
-        for (String playerStr : playersJson.split("\\},\\{")) {
+        // Split players manually by tracking brace depth
+        List<String> playerStrings = splitByTopLevelBraces(playersJson);
+        
+        for (String playerStr : playerStrings) {
             String id = playerStr.split("\"id\":\"")[1].split("\"")[0];
             String username = id; // default to id
             if (playerStr.contains("\"username\":\"")) {
@@ -111,6 +131,14 @@ public class GameStateParser {
             if (playerStr.contains("\"state\":\"")) {
                 state = playerStr.split("\"state\":\"")[1].split("\"")[0];
             }
+            int mesos = 0; // default
+            if (playerStr.contains("\"mesos\":")) {
+                try {
+                    mesos = Integer.parseInt(playerStr.split("\"mesos\":")[1].split(",")[0]);
+                } catch (Exception e) {
+                    // Keep default
+                }
+            }
 
             Optional<Player> existingPlayerOpt = players.stream().filter(p -> p.getId().equals(id)).findFirst();
             Player player;
@@ -127,6 +155,7 @@ public class GameStateParser {
             player.setY(y);
             player.setMapId(mapId);
             player.setCharacterType(characterType);
+            player.setMesos(mesos);
 
             // Parse inventory
             if (playerStr.contains("\"inventory\":[")) {
@@ -162,6 +191,41 @@ public class GameStateParser {
         }
 
         players.retainAll(receivedPlayers);
+    }
+
+    /**
+     * Split JSON array elements by top-level commas (ignoring nested arrays/objects)
+     */
+    private static List<String> splitByTopLevelBraces(String json) {
+        List<String> result = new ArrayList<>();
+        int braceDepth = 0;
+        int bracketDepth = 0;
+        int startIndex = 0;
+        
+        for (int i = 0; i < json.length(); i++) {
+            char c = json.charAt(i);
+            if (c == '{') braceDepth++;
+            else if (c == '}') braceDepth--;
+            else if (c == '[') bracketDepth++;
+            else if (c == ']') bracketDepth--;
+            else if (c == ',' && braceDepth == 0 && bracketDepth == 0) {
+                String element = json.substring(startIndex, i).trim();
+                if (element.startsWith("{")) element = element.substring(1);
+                if (element.endsWith("}")) element = element.substring(0, element.length() - 1);
+                result.add(element);
+                startIndex = i + 1;
+            }
+        }
+        
+        // Add last element
+        String lastElement = json.substring(startIndex).trim();
+        if (lastElement.startsWith("{")) lastElement = lastElement.substring(1);
+        if (lastElement.endsWith("}")) lastElement = lastElement.substring(0, lastElement.length() - 1);
+        if (!lastElement.isEmpty()) {
+            result.add(lastElement);
+        }
+        
+        return result;
     }
 
     private static void parseMonsters(String jsonState, List<Monster> monsters) {

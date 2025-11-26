@@ -70,8 +70,8 @@ public class GameStateSerializer {
             String characterType = p.getCharacterType() != null ? p.getCharacterType() : "defaultWarrior";
             String state = p.getState() != null ? p.getState() : "idle";
             
-            sb.append(String.format("{\"id\":\"%s\",\"username\":\"%s\",\"x\":%d,\"y\":%d,\"direction\":\"%s\",\"mapId\":\"%s\",\"characterType\":\"%s\",\"state\":\"%s\"",
-                    p.getId(), username, p.getX(), p.getY(), directionStr, p.getMapId(), characterType, state));
+            sb.append(String.format("{\"id\":\"%s\",\"username\":\"%s\",\"x\":%d,\"y\":%d,\"direction\":\"%s\",\"mapId\":\"%s\",\"characterType\":\"%s\",\"state\":\"%s\",\"mesos\":%d",
+                    p.getId(), username, p.getX(), p.getY(), directionStr, p.getMapId(), characterType, state, p.getMesos()));
             
             // Append inventory
             sb.append(",\"inventory\":[");

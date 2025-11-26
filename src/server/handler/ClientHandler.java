@@ -6,7 +6,6 @@ import common.player.Player;
 import common.skills.Skill;
 import server.core.GameState;
 import server.util.MessageParser;
-import common.ImagePath;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -44,8 +43,9 @@ public class ClientHandler implements Runnable {
             newPlayer.setMapId("warriorRoom"); // 첫 접속은 워리어 룸
             newPlayer.setX(400); // 워리어 룸 중앙
             newPlayer.setY(450);
+            newPlayer.setMesos(0); // 초기 메소 0
             gameState.addPlayer(newPlayer);
-            System.out.println("Player " + this.playerId + " connected to warriorRoom.");
+            System.out.println("Player " + this.playerId + " connected to warriorRoom with 0 mesos.");
 
             // Send a welcome message to the client with their new ID
             String welcomeMessage = String.format("{\"type\":\"WELCOME\",\"payload\":{\"id\":\"%s\"}}", this.playerId);
@@ -196,12 +196,8 @@ public class ClientHandler implements Runnable {
             String mapId = player.getMapId();
             String itemId = "item_" + UUID.randomUUID().toString();
 
-            String spritePath = "";
-            String itemName = "";
-            if ("defaultWeapon".equals(itemType)) {
-                spritePath = ImagePath.DEFAULT_WEAPON_IMAGE_PATH;
-                itemName = "초보자 무기";
-            }
+            String spritePath = "../img/clothes/" + itemType + ".png";
+            String itemName = getItemName(itemType);
 
             Item item = new Item(itemId, itemType, itemName, x, y, spritePath);
             gameState.addItem(mapId, item);
@@ -250,6 +246,24 @@ public class ClientHandler implements Runnable {
         } catch (Exception e) {
             System.err.println("Failed to handle item pickup: " + message);
             e.printStackTrace();
+        }
+    }
+
+    private String getItemName(String itemType) {
+        switch (itemType) {
+            case "defaultWeapon": return "초보자 무기";
+            case "bigWeapon": return "큰 무기";
+            case "blackBottom": return "검은 하의";
+            case "blackHat": return "검은 모자";
+            case "blueHat": return "파란 모자";
+            case "brownTop": return "갈색 상의";
+            case "defaultBottom": return "기본 하의";
+            case "defaultTop": return "기본 상의";
+            case "glove": return "장갑";
+            case "hair": return "헤어";
+            case "puppleTop": return "보라 상의";
+            case "shoes": return "신발";
+            default: return itemType;
         }
     }
 

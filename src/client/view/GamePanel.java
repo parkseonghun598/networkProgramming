@@ -199,9 +199,13 @@ public class GamePanel extends JPanel implements KeyListener, MouseListener, Pla
         // 플레이어 애니메이터 업데이트
         updatePlayerAnimators();
         
-        // 인벤토리 업데이트
+        // 인벤토리와 메소 업데이트
         if (inventoryPanel != null) {
             inventoryPanel.updateInventory();
+            Player myPlayer = getMyPlayer();
+            if (myPlayer != null) {
+                inventoryPanel.setMesos(myPlayer.getMesos());
+            }
         }
         
         this.errorMessage = null;
