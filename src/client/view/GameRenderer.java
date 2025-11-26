@@ -1,8 +1,11 @@
 package client.view;
 
 import client.util.SpriteManager;
+import client.util.CharacterAnimator;
+import common.item.Item;
 import common.map.Portal;
 import common.monster.Monster;
+import common.npc.NPC;
 import common.player.Player;
 import common.skills.Skill;
 
@@ -11,12 +14,14 @@ import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.util.List;
+import java.util.Map;
 
 public class GameRenderer {
 
     public static void render(Graphics g, BufferedImage background, String errorMessage,
             List<Monster> monsters, List<Skill> skills, List<Player> players,
-            List<Portal> portals, String myPlayerId, int width, int height) {
+            List<Portal> portals, List<NPC> npcs, List<Item> items, String myPlayerId, Map<String, CharacterAnimator> playerAnimators,
+            int width, int height) {
         try {
             if (background != null) {
                 g.drawImage(background, 0, 0, width, height, null);
@@ -28,10 +33,12 @@ public class GameRenderer {
                 return;
             }
 
+            renderNpcs(g, npcs);
+            renderItems(g, items);
             renderPortals(g, portals);
             renderMonsters(g, monsters);
             renderSkills(g, skills);
-            renderPlayers(g, players, myPlayerId);
+            renderPlayers(g, players, myPlayerId, playerAnimators);
         } catch (Exception e) {
             e.printStackTrace();
             g.setColor(Color.RED);
@@ -103,25 +110,106 @@ public class GameRenderer {
         }
     }
 
-    private static void renderPlayers(Graphics g, List<Player> players, String myPlayerId) {
-        Image playerSprite = SpriteManager.getSprite("player");
+    private static void renderPlayers(Graphics g, List<Player> players, String myPlayerId, 
+                                     Map<String, CharacterAnimator> playerAnimators) {
         for (Player player : players) {
+            Image playerSprite = null;
+            
+            // 애니메이터에서 현재 프레임 가져오기
+            CharacterAnimator animator = playerAnimators.get(player.getId());
+            if (animator != null) {
+                playerSprite = animator.getCurrentFrame();
+            }
+            
+            // 애니메이터가 없거나 프레임이 없으면 폴백
+            if (playerSprite == null) {
+                String characterType = player.getCharacterType() != null ? player.getCharacterType() : "defaultWarrior";
+                playerSprite = SpriteManager.getSprite(characterType);
+                
+                // 캐릭터 전용 스프라이트가 없으면 기본 player 스프라이트
+                if (playerSprite == null) {
+                    playerSprite = SpriteManager.getSprite("player");
+                }
+            }
+            
+            // 캐릭터 크기 설정
+            int characterWidth = 60;
+            int characterHeight = 60;
+            
+            // 방향에 따라 이미지 뒤집기
             if (playerSprite != null) {
-                g.drawImage(playerSprite, player.getX(), player.getY(), 100, 100, null);
+                common.enums.Direction direction = player.getDirection();
+                if (direction != null && direction == common.enums.Direction.RIGHT) {
+                    // 오른쪽을 보고 있으면 이미지를 뒤집어서 그리기
+                    g.drawImage(playerSprite, player.getX() + characterWidth, player.getY(), -characterWidth, characterHeight, null);
+                } else {
+                    // 왼쪽을 보고 있으면 정상적으로 그리기
+                    g.drawImage(playerSprite, player.getX(), player.getY(), characterWidth, characterHeight, null);
+                }
             } else {
+                // 최종 폴백: 파란 사각형
                 g.setColor(Color.BLUE);
-                g.fillRect(player.getX(), player.getY(), 100, 100);
+                g.fillRect(player.getX(), player.getY(), characterWidth, characterHeight);
             }
 
+            // 내 플레이어는 초록색 테두리 표시
             if (player.getId() != null && player.getId().equals(myPlayerId)) {
                 g.setColor(Color.GREEN);
-                g.drawRect(player.getX() - 2, player.getY() - 2, 104, 104);
+                g.drawRect(player.getX() - 2, player.getY() - 2, characterWidth + 4, characterHeight + 4);
             }
 
-            // Display username above player
+            // 플레이어 위에 유저명 표시
             String displayName = player.getUsername() != null ? player.getUsername() : player.getId();
             g.setColor(Color.WHITE);
-            g.drawString(displayName, player.getX() + 25, player.getY() - 5);
+            g.drawString(displayName, player.getX() + 10, player.getY() - 5);
+        }
+    }
+
+    private static void renderNpcs(Graphics g, List<NPC> npcs) {
+        for (NPC npc : npcs) {
+            // NPC 스프라이트 가져오기
+            Image npcSprite = SpriteManager.getSprite(npc.getId());
+            
+            if (npcSprite != null) {
+                // NPC 크기
+                int npcWidth = 80;
+                int npcHeight = 80;
+                g.drawImage(npcSprite, npc.getX(), npc.getY(), npcWidth, npcHeight, null);
+                
+                // NPC 이름 표시
+                g.setColor(Color.WHITE);
+                g.drawString(npc.getName(), npc.getX() + 10, npc.getY() - 5);
+            } else {
+                // 폴백: 회색 사각형
+                g.setColor(Color.GRAY);
+                g.fillRect(npc.getX(), npc.getY(), 80, 80);
+                g.setColor(Color.WHITE);
+                g.drawString(npc.getName(), npc.getX() + 10, npc.getY() - 5);
+            }
+        }
+    }
+
+    private static void renderItems(Graphics g, List<Item> items) {
+        for (Item item : items) {
+            // 아이템 스프라이트 가져오기
+            Image itemSprite = SpriteManager.getSprite(item.getType());
+            
+            if (itemSprite != null) {
+                // 아이템 크기
+                int itemWidth = 40;
+                int itemHeight = 40;
+                g.drawImage(itemSprite, item.getX(), item.getY(), itemWidth, itemHeight, null);
+                
+                // 아이템 이름 표시
+                g.setColor(Color.YELLOW);
+                g.drawString(item.getName(), item.getX() - 5, item.getY() - 5);
+            } else {
+                // 폴백: 노란색 사각형
+                g.setColor(Color.ORANGE);
+                g.fillRect(item.getX(), item.getY(), 40, 40);
+                g.setColor(Color.YELLOW);
+                g.drawString(item.getName(), item.getX() - 5, item.getY() - 5);
+            }
         }
     }
 }

@@ -10,7 +10,6 @@ public class PlayerInputHandler {
         if (myPlayer == null) return;
 
         int x = myPlayer.getX();
-        int y = myPlayer.getY();
 
         switch (e.getKeyCode()) {
             case KeyEvent.VK_LEFT:
@@ -44,6 +43,12 @@ public class PlayerInputHandler {
             case KeyEvent.VK_R:
                 callback.useSkill("skill3");
                 break;
+            case KeyEvent.VK_Z:
+                callback.pickupItem();
+                return; // 아이템 픽업은 서버에 직접 요청하므로 sendUpdate 호출 안함
+            case KeyEvent.VK_I:
+                callback.toggleInventory();
+                return; // 인벤토리는 UI만 토글
             default:
                 return;
         }
@@ -56,6 +61,8 @@ public class PlayerInputHandler {
         switch (e.getKeyCode()) {
             case KeyEvent.VK_LEFT:
             case KeyEvent.VK_RIGHT:
+                // 좌우 이동 키를 놓으면 idle 상태로 변경
+                myPlayer.setState("idle");
                 callback.sendUpdate();
                 break;
         }
@@ -67,5 +74,7 @@ public class PlayerInputHandler {
         void useSkill(String skillType);
         void usePortal();
         void sendUpdate();
+        void pickupItem();
+        void toggleInventory();
     }
 }

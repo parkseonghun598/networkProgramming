@@ -2,8 +2,11 @@ package client.view;
 
 import client.controller.NetworkHandler;
 import client.controller.PlayerInputHandler;
+import client.controller.NpcDialogHandler;
 import client.util.GameStateParser;
 import client.util.SpriteManager;
+import client.util.CharacterAnimator;
+import common.inventory.Inventory;
 import common.monster.Monster;
 import common.player.Player;
 import common.skills.Skill;
@@ -17,11 +20,16 @@ import java.io.File;
 import java.io.IOException;
 import javax.imageio.ImageIO;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-public class GamePanel extends JPanel implements KeyListener, PlayerInputHandler.PlayerMovementCallback {
+public class GamePanel extends JPanel implements KeyListener, MouseListener, PlayerInputHandler.PlayerMovementCallback {
 
     private NetworkHandler networkHandler;
+    private NpcDialogHandler npcDialogHandler;
+    private InventoryPanel inventoryPanel;
+    private Inventory inventory;
     private String errorMessage;
     private String myPlayerId;
     private User currentUser;
@@ -30,8 +38,13 @@ public class GamePanel extends JPanel implements KeyListener, PlayerInputHandler
     private final List<Monster> monsters;
     private final List<Skill> skills;
     private final List<common.map.Portal> portals;
+    private final List<common.npc.NPC> npcs;
+    private final List<common.item.Item> items;
     private String currentBackgroundImagePath;
     private BufferedImage background;
+    
+    // 플레이어별 애니메이터 관리
+    private final Map<String, CharacterAnimator> playerAnimators;
 
     private double velocityY = 0;
     private boolean isJumping = false;
@@ -49,10 +62,14 @@ public class GamePanel extends JPanel implements KeyListener, PlayerInputHandler
         this.monsters = new CopyOnWriteArrayList<>();
         this.skills = new CopyOnWriteArrayList<>();
         this.portals = new CopyOnWriteArrayList<>();
+        this.npcs = new CopyOnWriteArrayList<>();
+        this.items = new CopyOnWriteArrayList<>();
+        this.playerAnimators = new ConcurrentHashMap<>();
 
         setPreferredSize(new Dimension(800, 600));
         setFocusable(true);
         addKeyListener(this);
+        addMouseListener(this);
         setLayout(null); // Use absolute positioning
 
         // Initialize Chat UI
@@ -92,9 +109,19 @@ public class GamePanel extends JPanel implements KeyListener, PlayerInputHandler
             }
         });
 
+        // Initialize inventory
+        inventory = new Inventory();
+        inventoryPanel = new InventoryPanel(inventory);
+        inventoryPanel.hide();
+        add(inventoryPanel);
+
         try {
             SpriteManager.loadSprites();
             networkHandler = new NetworkHandler(this, "localhost", 12345);
+            npcDialogHandler = new NpcDialogHandler(this, networkHandler, this::getMyPlayer);
+            inventoryPanel.setVisible(false);
+            add(inventoryPanel);
+            
             new Thread(networkHandler).start();
         } catch (Exception e) {
             showError("Failed to connect to the server or load assets.");
@@ -135,6 +162,8 @@ public class GamePanel extends JPanel implements KeyListener, PlayerInputHandler
                 newY = GROUND_Y;
                 isJumping = false;
                 velocityY = 0;
+                // 점프가 끝났으므로 idle 상태로 변경
+                myPlayer.setState("idle");
             }
             myPlayer.setY(newY);
             sendPlayerUpdate();
@@ -156,13 +185,73 @@ public class GamePanel extends JPanel implements KeyListener, PlayerInputHandler
         return currentUser != null ? currentUser.getUsername() : null;
     }
 
+    public String getCharacterType() {
+        return currentUser != null ? currentUser.getCharacterType() : "defaultWarrior";
+    }
+
     public void updateGameState(String jsonState) {
-        GameStateParser.parseAndUpdate(jsonState, players, monsters, skills, portals, myPlayerId);
+        GameStateParser.parseAndUpdate(jsonState, players, monsters, skills, portals, npcs, items, myPlayerId);
         String newBgPath = GameStateParser.parseBackgroundImagePath(jsonState);
         if (newBgPath != null) {
             setBackgroundImage(newBgPath);
         }
+        
+        // 플레이어 애니메이터 업데이트
+        updatePlayerAnimators();
+        
+        // 인벤토리와 메소 업데이트
+        if (inventoryPanel != null) {
+            inventoryPanel.updateInventory();
+            Player myPlayer = getMyPlayer();
+            if (myPlayer != null) {
+                inventoryPanel.setMesos(myPlayer.getMesos());
+            }
+        }
+        
         this.errorMessage = null;
+    }
+    
+    private void updatePlayerAnimators() {
+        long currentTime = System.currentTimeMillis();
+        
+        for (Player player : players) {
+            String playerId = player.getId();
+            String characterType = player.getCharacterType();
+            
+            // 애니메이터가 없으면 생성
+            if (!playerAnimators.containsKey(playerId)) {
+                CharacterAnimator animator = new CharacterAnimator(characterType);
+                playerAnimators.put(playerId, animator);
+                System.out.println("Created animator for player " + playerId + " with character " + characterType);
+            }
+            
+            // 플레이어 상태에 따라 애니메이션 설정
+            CharacterAnimator animator = playerAnimators.get(playerId);
+            
+            // 내 플레이어이고 공격 애니메이션 중이면 attack 유지
+            if (playerId.equals(myPlayerId) && 
+                currentTime - lastAttackTime < ATTACK_ANIMATION_DURATION) {
+                animator.setState("attack");
+                continue;
+            }
+            
+            String state = player.getState();
+            
+            if (state == null) {
+                animator.setState("idle");
+            } else if (state.equals("jump")) {
+                animator.setState("jump");
+            } else if (state.equals("move")) {
+                animator.setState("move");
+            } else {
+                animator.setState("idle");
+            }
+        }
+        
+        // 삭제된 플레이어의 애니메이터 제거
+        playerAnimators.keySet().removeIf(playerId -> 
+            players.stream().noneMatch(p -> p.getId().equals(playerId))
+        );
     }
 
     public void setBackgroundImage(String path) {
@@ -193,6 +282,19 @@ public class GamePanel extends JPanel implements KeyListener, PlayerInputHandler
                 chatInput.setVisible(true);
                 chatInput.requestFocusInWindow();
             }
+            return;
+        }
+
+        // I 키: 인벤토리 토글
+        if (e.getKeyCode() == KeyEvent.VK_I) {
+            inventoryPanel.toggleVisibility();
+            repaint();
+            return;
+        }
+
+        // Z 키: 아이템 습득
+        if (e.getKeyCode() == KeyEvent.VK_Z) {
+            pickupItem();
             return;
         }
 
@@ -227,6 +329,9 @@ public class GamePanel extends JPanel implements KeyListener, PlayerInputHandler
         put("skill3", 5000L);
         put("skill4", 4000L);
     }};
+    
+    private long lastAttackTime = 0;
+    private static final long ATTACK_ANIMATION_DURATION = 400; // 공격 애니메이션 지속 시간 (밀리초)
 
     @Override
     public void useSkill(String skillType) {
@@ -254,13 +359,20 @@ public class GamePanel extends JPanel implements KeyListener, PlayerInputHandler
                 skillType, direction);
         networkHandler.sendMessage(skillMsg);
         System.out.println("Skill used: " + skillType + " in direction: " + direction);
+        
+        // 공격 애니메이션 트리거
+        lastAttackTime = currentTime;
+        CharacterAnimator myAnimator = playerAnimators.get(myPlayerId);
+        if (myAnimator != null) {
+            myAnimator.setState("attack");
+        }
     }
 
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
-        GameRenderer.render(g, background, errorMessage, monsters, skills, players, portals,
-                myPlayerId, getWidth(), getHeight());
+        GameRenderer.render(g, background, errorMessage, monsters, skills, players, portals, npcs, items,
+                myPlayerId, playerAnimators, getWidth(), getHeight());
 
         // Render Cooldown UI
         renderCooldownUI(g);
@@ -331,5 +443,69 @@ public class GamePanel extends JPanel implements KeyListener, PlayerInputHandler
                 myPlayer.getX(), myPlayer.getY(), myPlayer.getState(),
                 myPlayer.getDirection().getValue());
         networkHandler.sendMessage(updateMsg);
+    }
+
+    // MouseListener implementation
+    @Override
+    public void mouseClicked(MouseEvent e) {
+        npcDialogHandler.handleNpcClick(e.getX(), e.getY(), npcs);
+    }
+
+    @Override
+    public void mousePressed(MouseEvent e) {}
+
+    @Override
+    public void mouseReleased(MouseEvent e) {}
+
+    @Override
+    public void mouseEntered(MouseEvent e) {}
+
+    @Override
+    public void mouseExited(MouseEvent e) {}
+
+    @Override
+    public void pickupItem() {
+        Player myPlayer = getMyPlayer();
+        if (myPlayer == null) return;
+
+        // 인벤토리가 가득 찼는지 확인
+        if (inventory.isFull()) {
+            System.out.println("Inventory is full!");
+            return;
+        }
+
+        // 근처 아이템 찾기 (픽업 범위: 80픽셀)
+        final int PICKUP_RANGE = 80;
+        for (common.item.Item item : items) {
+            int dx = item.getX() - myPlayer.getX();
+            int dy = item.getY() - myPlayer.getY();
+            double distance = Math.sqrt(dx * dx + dy * dy);
+
+            if (distance <= PICKUP_RANGE) {
+                // 서버에 아이템 픽업 요청
+                String msg = String.format(
+                    "{\"type\":\"PICKUP_ITEM\",\"payload\":{\"itemId\":\"%s\"}}",
+                    item.getId()
+                );
+                networkHandler.sendMessage(msg);
+                System.out.println("Requested pickup for item: " + item.getId());
+                break; // 한 번에 하나만 습득
+            }
+        }
+    }
+
+    @Override
+    public void toggleInventory() {
+        inventoryPanel.toggleVisibility();
+        repaint();
+    }
+
+    public void addItemToInventory(common.item.Item item) {
+        if (inventory.addItem(item)) {
+            System.out.println("Added item to inventory: " + item.getName());
+            inventoryPanel.updateInventory();
+        } else {
+            System.out.println("Failed to add item: inventory full");
+        }
     }
 }

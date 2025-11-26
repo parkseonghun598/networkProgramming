@@ -26,7 +26,9 @@ public class LoginFrame extends JFrame {
         loginPanel = new LoginPanel(new LoginPanel.LoginCallback() {
             @Override
             public void onLoginSuccess(User user) {
-                showCharacterSelectPanel(user);
+                // Skip character selection, go directly to game with defaultWarrior
+                user.setCharacterType("defaultWarrior");
+                openGameFrame(user);
             }
         });
 

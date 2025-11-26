@@ -37,10 +37,12 @@ public class NetworkHandler implements Runnable {
                     String id = serverMessage.split("\"id\":\"")[1].split("\"}")[0];
                     gamePanel.setMyPlayerId(id);
 
-                    // Send username to server
+                    // Send username and character type to server
                     String username = gamePanel.getUsername();
+                    String characterType = gamePanel.getCharacterType();
                     if (username != null) {
-                        String userInfoMsg = String.format("{\"type\":\"USER_INFO\",\"payload\":{\"username\":\"%s\"}}", username);
+                        String userInfoMsg = String.format("{\"type\":\"USER_INFO\",\"payload\":{\"username\":\"%s\",\"characterType\":\"%s\"}}", 
+                            username, characterType != null ? characterType : "defaultWarrior");
                         sendMessage(userInfoMsg);
                     }
                 } else if (serverMessage.contains("\"type\":\"GAME_STATE\"")) {
@@ -49,6 +51,8 @@ public class NetworkHandler implements Runnable {
                 } else if (serverMessage.contains("\"type\":\"CHAT\"")) {
                     String message = serverMessage.split("\"message\":\"")[1].split("\"")[0];
                     gamePanel.addChatMessage(message);
+                } else if (serverMessage.contains("\"type\":\"ITEM_ADDED\"")) {
+                    handleItemAdded(serverMessage);
                 }
             }
         } catch (IOException e) {
@@ -61,6 +65,21 @@ public class NetworkHandler implements Runnable {
         if (out != null) {
             out.println(message);
             // System.out.println("Sent to server: " + message); // Optional: for debugging
+        }
+    }
+
+    private void handleItemAdded(String message) {
+        try {
+            String id = message.split("\"id\":\"")[1].split("\"")[0];
+            String type = message.split("\"type\":\"")[1].split("\"")[0];
+            String name = message.split("\"name\":\"")[1].split("\"")[0];
+            String spritePath = message.split("\"spritePath\":\"")[1].split("\"")[0];
+            
+            common.item.Item item = new common.item.Item(id, type, name, 0, 0, spritePath);
+            gamePanel.addItemToInventory(item);
+        } catch (Exception e) {
+            System.err.println("Failed to parse ITEM_ADDED message: " + message);
+            e.printStackTrace();
         }
     }
 }

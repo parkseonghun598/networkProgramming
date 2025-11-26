@@ -1,6 +1,7 @@
 package server.handler;
 
 import common.enums.Direction;
+import common.item.Item;
 import common.player.Player;
 import common.skills.Skill;
 import server.core.GameState;
@@ -39,10 +40,12 @@ public class ClientHandler implements Runnable {
 
             Player newPlayer = new Player();
             newPlayer.setId(this.playerId);
-            newPlayer.setX(50);
-            newPlayer.setY(475);
+            newPlayer.setMapId("warriorRoom"); // 첫 접속은 워리어 룸
+            newPlayer.setX(400); // 워리어 룸 중앙
+            newPlayer.setY(450);
+            newPlayer.setMesos(0); // 초기 메소 0
             gameState.addPlayer(newPlayer);
-            System.out.println("Player " + this.playerId + " connected.");
+            System.out.println("Player " + this.playerId + " connected to warriorRoom with 0 mesos.");
 
             // Send a welcome message to the client with their new ID
             String welcomeMessage = String.format("{\"type\":\"WELCOME\",\"payload\":{\"id\":\"%s\"}}", this.playerId);
@@ -61,6 +64,10 @@ public class ClientHandler implements Runnable {
                     handlePortalUse();
                 } else if (inputLine.contains("\"type\":\"CHAT\"")) {
                     handleChat(inputLine);
+                } else if (inputLine.contains("\"type\":\"REQUEST_ITEM_DROP\"")) {
+                    handleItemDropRequest(inputLine);
+                } else if (inputLine.contains("\"type\":\"PICKUP_ITEM\"")) {
+                    handleItemPickup(inputLine);
                 }
             }
 
@@ -90,8 +97,8 @@ public class ClientHandler implements Runnable {
             return;
 
         for (common.map.Portal portal : currentMap.getPortals()) {
-            // Player dimensions are hardcoded as 100x100 in the renderer
-            if (portal.isPlayerInside(player.getX(), player.getY(), 100, 100)) {
+            // Player dimensions: 60x60
+            if (portal.isPlayerInside(player.getX(), player.getY(), 60, 60)) {
                 player.setMapId(portal.getTargetMapId());
                 player.setX(portal.getTargetX());
                 player.setY(portal.getTargetY());
@@ -138,10 +145,15 @@ public class ClientHandler implements Runnable {
     private void handleUserInfo(String message) {
         try {
             String username = message.split("\"username\":\"")[1].split("\"")[0];
+            String characterType = "defaultWarrior"; // default
+            if (message.contains("\"characterType\":\"")) {
+                characterType = message.split("\"characterType\":\"")[1].split("\"")[0];
+            }
             Player player = gameState.getPlayer(playerId);
             if (player != null) {
                 player.setUsername(username);
-                System.out.println("Player " + playerId + " set username: " + username);
+                player.setCharacterType(characterType);
+                System.out.println("Player " + playerId + " set username: " + username + ", character: " + characterType);
             }
         } catch (Exception e) {
             System.err.println("Failed to handle user info: " + message);
@@ -169,6 +181,89 @@ public class ClientHandler implements Runnable {
     public void sendMessage(String message) {
         if (out != null) {
             out.println(message);
+        }
+    }
+
+    private void handleItemDropRequest(String message) {
+        try {
+            String itemType = message.split("\"itemType\":\"")[1].split("\"")[0];
+            int x = Integer.parseInt(message.split("\"x\":")[1].split(",")[0]);
+            int y = Integer.parseInt(message.split("\"y\":")[1].split("}")[0]);
+
+            Player player = gameState.getPlayer(playerId);
+            if (player == null) return;
+
+            String mapId = player.getMapId();
+            String itemId = "item_" + UUID.randomUUID().toString();
+
+            String spritePath = "../img/clothes/" + itemType + ".png";
+            String itemName = getItemName(itemType);
+
+            Item item = new Item(itemId, itemType, itemName, x, y, spritePath);
+            gameState.addItem(mapId, item);
+
+            System.out.println("Player " + playerId + " dropped item " + itemType + " at (" + x + ", " + y + ")");
+        } catch (Exception e) {
+            System.err.println("Failed to handle item drop request: " + message);
+            e.printStackTrace();
+        }
+    }
+
+    private void handleItemPickup(String message) {
+        try {
+            String itemId = message.split("\"itemId\":\"")[1].split("\"")[0];
+
+            Player player = gameState.getPlayer(playerId);
+            if (player == null) return;
+
+            String mapId = player.getMapId();
+            
+            // 맵에서 아이템 찾기
+            Item item = null;
+            for (Item mapItem : gameState.getItemsInMap(mapId)) {
+                if (mapItem.getId().equals(itemId)) {
+                    item = mapItem;
+                    break;
+                }
+            }
+
+            if (item != null) {
+                // 플레이어 인벤토리에 추가
+                player.addItemToInventory(item);
+                
+                // 맵에서 제거
+                gameState.removeItem(mapId, itemId);
+                
+                // 클라이언트에게 아이템 추가 알림
+                String itemAddedMsg = String.format(
+                    "{\"type\":\"ITEM_ADDED\",\"payload\":{\"id\":\"%s\",\"type\":\"%s\",\"name\":\"%s\",\"spritePath\":\"%s\"}}",
+                    item.getId(), item.getType(), item.getName(), item.getSpritePath().replace("\\", "/")
+                );
+                sendMessage(itemAddedMsg);
+                
+                System.out.println("Player " + playerId + " picked up item " + item.getType());
+            }
+        } catch (Exception e) {
+            System.err.println("Failed to handle item pickup: " + message);
+            e.printStackTrace();
+        }
+    }
+
+    private String getItemName(String itemType) {
+        switch (itemType) {
+            case "defaultWeapon": return "초보자 무기";
+            case "bigWeapon": return "큰 무기";
+            case "blackBottom": return "검은 하의";
+            case "blackHat": return "검은 모자";
+            case "blueHat": return "파란 모자";
+            case "brownTop": return "갈색 상의";
+            case "defaultBottom": return "기본 하의";
+            case "defaultTop": return "기본 상의";
+            case "glove": return "장갑";
+            case "hair": return "헤어";
+            case "puppleTop": return "보라 상의";
+            case "shoes": return "신발";
+            default: return itemType;
         }
     }
 

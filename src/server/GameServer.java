@@ -22,6 +22,7 @@ public class GameServer {
     public static void main(String[] args) {
         // Initialize maps
         Map<String, GameMap> maps = new HashMap<>();
+        maps.put("warriorRoom", MapCreator.WarriorRoom());
         maps.put("hennesis", MapCreator.Hennessis());
         maps.put("bossMap", MapCreator.BossMap());
 
