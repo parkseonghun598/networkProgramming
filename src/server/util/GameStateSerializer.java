@@ -69,9 +69,13 @@ public class GameStateSerializer {
             String username = p.getUsername() != null ? p.getUsername() : p.getId();
             String characterType = p.getCharacterType() != null ? p.getCharacterType() : "defaultWarrior";
             String state = p.getState() != null ? p.getState() : "idle";
+            String equippedWeapon = p.getEquippedWeapon() != null ? p.getEquippedWeapon() : "none";
+            String equippedHat = p.getEquippedHat() != null ? p.getEquippedHat() : "none";
+            String equippedTop = p.getEquippedTop() != null ? p.getEquippedTop() : "none";
+            String equippedBottom = p.getEquippedBottom() != null ? p.getEquippedBottom() : "none";
             
-            sb.append(String.format("{\"id\":\"%s\",\"username\":\"%s\",\"x\":%d,\"y\":%d,\"direction\":\"%s\",\"mapId\":\"%s\",\"characterType\":\"%s\",\"state\":\"%s\",\"mesos\":%d",
-                    p.getId(), username, p.getX(), p.getY(), directionStr, p.getMapId(), characterType, state, p.getMesos()));
+            sb.append(String.format("{\"id\":\"%s\",\"username\":\"%s\",\"x\":%d,\"y\":%d,\"direction\":\"%s\",\"mapId\":\"%s\",\"characterType\":\"%s\",\"state\":\"%s\",\"mesos\":%d,\"equippedWeapon\":\"%s\",\"equippedHat\":\"%s\",\"equippedTop\":\"%s\",\"equippedBottom\":\"%s\"",
+                    p.getId(), username, p.getX(), p.getY(), directionStr, p.getMapId(), characterType, state, p.getMesos(), equippedWeapon, equippedHat, equippedTop, equippedBottom));
             
             // Append inventory
             sb.append(",\"inventory\":[");
