@@ -1,14 +1,13 @@
 package common.skills;
 
+import common.ImagePath;
 import common.enums.Direction;
 
 import javax.swing.ImageIcon;
 
-/**
- * Skill1 구현 클래스 (skill1.gif 사용)
- */
+
 public class Skill1 extends Skill {
-    private static final String RESOURCE_PATH = "../img/skill1_transparent.gif";
+    private static final String RESOURCE_PATH = ImagePath.SKILL_IMAGE_PATH1;
     private static final int SKILL_SPEED = 5;
     private static final int SKILL_RANGE = 400;
     private static final int SKILL_WIDTH = 70;

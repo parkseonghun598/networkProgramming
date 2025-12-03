@@ -1,5 +1,6 @@
 package common.skills;
 
+import common.ImagePath;
 import common.enums.Direction;
 
 import javax.swing.ImageIcon;
@@ -9,7 +10,7 @@ import javax.swing.ImageIcon;
  * 느린 속도, 긴 사거리, 강한 데미지
  */
 public class Skill3 extends Skill {
-    private static final String RESOURCE_PATH = "../img/skill1_transparent.gif";
+    private static final String RESOURCE_PATH = ImagePath.SKILL_IMAGE_PATH3;
     private static final int SKILL_SPEED = 3;
     private static final int SKILL_RANGE = 600;
     private static final int SKILL_WIDTH = 70;
