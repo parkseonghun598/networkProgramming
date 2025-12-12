@@ -146,8 +146,8 @@ public class GameStateSerializer {
         sb.append(",\"items\":[");
         for (Item item : items) {
             sb.append(String.format(
-                    "{\"id\":\"%s\",\"type\":\"%s\",\"name\":\"%s\",\"x\":%d,\"y\":%d,\"spritePath\":\"%s\"}",
-                    item.getId(), item.getType(), item.getName(), item.getX(), item.getY(), item.getSpritePath().replace("\\", "/")));
+                    "{\"id\":\"%s\",\"type\":\"%s\",\"name\":\"%s\",\"x\":%d,\"y\":%d,\"spritePath\":\"%s\",\"value\":%d}",
+                    item.getId(), item.getType(), item.getName(), item.getX(), item.getY(), item.getSpritePath().replace("\\", "/"), item.getValue()));
             sb.append(",");
         }
         if (!items.isEmpty()) {

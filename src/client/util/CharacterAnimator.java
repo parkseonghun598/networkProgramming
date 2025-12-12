@@ -39,11 +39,20 @@ public class CharacterAnimator {
 
     /**
      * 캐릭터의 모든 애니메이션 프레임을 로드합니다.
+     * 폴더가 없으면 기본 캐릭터 폴더를 시도합니다.
      */
     private void loadAnimations() {
+        String basePath = "../img/character/" + characterFolderPath + "/";
+        File baseDir = new File(basePath);
+        
+        // 폴더가 없으면 기본 캐릭터 폴더 시도
+        if (!baseDir.exists() || !baseDir.isDirectory()) {
+            String defaultPath = "../img/character/defaultWarrior/";
+            System.out.println("Character folder not found: " + basePath + ", trying default: " + defaultPath);
+            basePath = defaultPath;
+        }
+        
         try {
-            String basePath = "../img/character/" + characterFolderPath + "/";
-
             // Stand (idle) 애니메이션: stand1_0만 사용 (정적 프레임)
             Image[] standFrames = new Image[1];
             File standFile = new File(basePath + "stand1_0.png");
@@ -56,41 +65,53 @@ public class CharacterAnimator {
 
             // Walk 애니메이션: walk1_0 ~ walk1_4
             Image[] walkFrames = new Image[5];
+            boolean hasWalkFrames = false;
             for (int i = 0; i < 5; i++) {
                 File file = new File(basePath + "walk1_" + i + ".png");
                 if (file.exists()) {
                     walkFrames[i] = ImageIO.read(file);
+                    hasWalkFrames = true;
                 } else {
                     System.err.println("Missing walk frame: " + file.getPath());
                 }
             }
-            animations.put("move", walkFrames);
+            if (hasWalkFrames) {
+                animations.put("move", walkFrames);
+            }
 
             // Jump 애니메이션: jump_0 ~ jump_1
             Image[] jumpFrames = new Image[2];
+            boolean hasJumpFrames = false;
             for (int i = 0; i < 2; i++) {
                 File file = new File(basePath + "jump_" + i + ".png");
                 if (file.exists()) {
                     jumpFrames[i] = ImageIO.read(file);
+                    hasJumpFrames = true;
                 } else {
                     System.err.println("Missing jump frame: " + file.getPath());
                 }
             }
-            animations.put("jump", jumpFrames);
+            if (hasJumpFrames) {
+                animations.put("jump", jumpFrames);
+            }
 
             // Swing (attack) 애니메이션: swingT1_0 ~ swingT1_3
             Image[] swingFrames = new Image[4];
+            boolean hasSwingFrames = false;
             for (int i = 0; i < 4; i++) {
                 File file = new File(basePath + "swingT1_" + i + ".png");
                 if (file.exists()) {
                     swingFrames[i] = ImageIO.read(file);
+                    hasSwingFrames = true;
                 } else {
                     System.err.println("Missing swing frame: " + file.getPath());
                 }
             }
-            animations.put("attack", swingFrames);
+            if (hasSwingFrames) {
+                animations.put("attack", swingFrames);
+            }
 
-            System.out.println("Loaded animations for " + characterFolderPath);
+            System.out.println("Loaded animations for " + characterFolderPath + " from " + basePath);
         } catch (IOException e) {
             System.err.println("Failed to load animations for " + characterFolderPath + ": " + e.getMessage());
             e.printStackTrace();
@@ -102,6 +123,11 @@ public class CharacterAnimator {
      * @param state "idle", "move", "jump", "attack"
      */
     public void setState(String state) {
+        if (state == null) {
+            state = "idle";
+        }
+        
+        // 상태가 변경되면 프레임을 초기화하고 시간을 리셋
         if (!this.currentState.equals(state)) {
             this.currentState = state;
             this.currentFrame = 0; // 상태가 변경되면 프레임을 초기화
@@ -139,6 +165,16 @@ public class CharacterAnimator {
         if (currentTime - lastFrameTime >= frameDelay) {
             currentFrame = (currentFrame + 1) % frames.length;
             lastFrameTime = currentTime;
+        }
+        
+        // 현재 프레임이 유효한 범위인지 확인
+        if (currentFrame < 0 || currentFrame >= frames.length) {
+            currentFrame = 0;
+        }
+        
+        // 프레임이 null이면 첫 번째 프레임 반환
+        if (frames[currentFrame] == null && frames.length > 0) {
+            return frames[0];
         }
 
         return frames[currentFrame];

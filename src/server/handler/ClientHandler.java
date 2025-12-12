@@ -232,20 +232,38 @@ public class ClientHandler implements Runnable {
             }
 
             if (item != null) {
-                // 플레이어 인벤토리에 추가
-                player.addItemToInventory(item);
-                
-                // 맵에서 제거
-                gameState.removeItem(mapId, itemId);
-                
-                // 클라이언트에게 아이템 추가 알림
-                String itemAddedMsg = String.format(
-                    "{\"type\":\"ITEM_ADDED\",\"payload\":{\"id\":\"%s\",\"type\":\"%s\",\"name\":\"%s\",\"spritePath\":\"%s\"}}",
-                    item.getId(), item.getType(), item.getName(), item.getSpritePath().replace("\\", "/")
-                );
-                sendMessage(itemAddedMsg);
-                
-                System.out.println("Player " + playerId + " picked up item " + item.getType());
+                // 코인 아이템인 경우 메소로 변환
+                if ("coin".equals(item.getType())) {
+                    int mesosAmount = item.getValue();
+                    player.setMesos(player.getMesos() + mesosAmount);
+                    
+                    // 맵에서 제거
+                    gameState.removeItem(mapId, itemId);
+                    
+                    // 클라이언트에게 메소 업데이트 알림
+                    String mesosUpdateMsg = String.format(
+                        "{\"type\":\"MESOS_UPDATE\",\"payload\":{\"mesos\":%d}}",
+                        player.getMesos()
+                    );
+                    sendMessage(mesosUpdateMsg);
+                    
+                    System.out.println("Player " + playerId + " picked up coin worth " + mesosAmount + " mesos. Total: " + player.getMesos());
+                } else {
+                    // 일반 아이템은 인벤토리에 추가
+                    player.addItemToInventory(item);
+                    
+                    // 맵에서 제거
+                    gameState.removeItem(mapId, itemId);
+                    
+                    // 클라이언트에게 아이템 추가 알림
+                    String itemAddedMsg = String.format(
+                        "{\"type\":\"ITEM_ADDED\",\"payload\":{\"id\":\"%s\",\"type\":\"%s\",\"name\":\"%s\",\"spritePath\":\"%s\"}}",
+                        item.getId(), item.getType(), item.getName(), item.getSpritePath().replace("\\", "/")
+                    );
+                    sendMessage(itemAddedMsg);
+                    
+                    System.out.println("Player " + playerId + " picked up item " + item.getType());
+                }
             }
         } catch (Exception e) {
             System.err.println("Failed to handle item pickup: " + message);

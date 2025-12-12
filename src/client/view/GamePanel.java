@@ -266,7 +266,8 @@ public class GamePanel extends JPanel implements KeyListener, MouseListener, Pla
             
             String state = player.getState();
             
-            if (state == null) {
+            // 플레이어 상태에 따라 애니메이션 상태 설정
+            if (state == null || state.isEmpty()) {
                 animator.setState("idle");
             } else if (state.equals("jump")) {
                 animator.setState("jump");

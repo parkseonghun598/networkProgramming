@@ -191,8 +191,11 @@ public class GameRenderer {
 
     private static void renderItems(Graphics g, List<Item> items) {
         for (Item item : items) {
-            // 아이템 스프라이트 가져오기
+            // 아이템 스프라이트 가져오기 (타입으로 먼저 시도, 없으면 spritePath로)
             Image itemSprite = SpriteManager.getSprite(item.getType());
+            if (itemSprite == null && item.getSpritePath() != null) {
+                itemSprite = SpriteManager.getSpriteByPath(item.getSpritePath());
+            }
             
             if (itemSprite != null) {
                 // 아이템 크기

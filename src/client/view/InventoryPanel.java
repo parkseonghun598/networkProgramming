@@ -205,6 +205,11 @@ public class InventoryPanel extends JPanel {
             ? player.getInventory() 
             : inventory.getItems();
         
+        // 인벤토리가 비어있으면 그리기 중단
+        if (items == null || items.isEmpty()) {
+            return;
+        }
+        
         for (int i = 0; i < items.size() && i < 24; i++) {
             Item item = items.get(i);
             int row = i / cols;

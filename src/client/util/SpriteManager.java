@@ -56,6 +56,15 @@ public class SpriteManager {
             // Monsters and effects
             sprites.put("그린 슬라임", new ImageIcon(GREEN_SLIME_IMAGE_PATH).getImage());
             sprites.put("portal", new ImageIcon(PORTAL_GIF_PATH).getImage());
+            
+            // Load coin sprite
+            File coinFile = new File("../img/tabler_coin.png");
+            if (coinFile.exists()) {
+                sprites.put("coin", ImageIO.read(coinFile));
+                System.out.println("Loaded coin sprite");
+            } else {
+                System.err.println("coin sprite not found: " + coinFile.getAbsolutePath());
+            }
         } catch (IOException e) {
             System.err.println("Failed to load sprites: " + e.getMessage());
             e.printStackTrace();
