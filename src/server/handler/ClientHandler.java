@@ -68,6 +68,10 @@ public class ClientHandler implements Runnable {
                     handleItemDropRequest(inputLine);
                 } else if (inputLine.contains("\"type\":\"PICKUP_ITEM\"")) {
                     handleItemPickup(inputLine);
+                } else if (inputLine.contains("\"type\":\"EQUIP_ITEM\"")) {
+                    handleEquipItem(inputLine);
+                } else if (inputLine.contains("\"type\":\"UNEQUIP_ITEM\"")) {
+                    handleUnequipItem(inputLine);
                 }
             }
 
@@ -264,6 +268,95 @@ public class ClientHandler implements Runnable {
             case "puppleTop": return "보라 상의";
             case "shoes": return "신발";
             default: return itemType;
+        }
+    }
+
+    private void handleEquipItem(String message) {
+        try {
+            String itemId = message.split("\"itemId\":\"")[1].split("\"")[0];
+            String slotStr = message.split("\"slot\":\"")[1].split("\"")[0];
+
+            Player player = gameState.getPlayer(playerId);
+            if (player == null) return;
+
+            // 인벤토리에서 아이템 찾기
+            Item itemToEquip = null;
+            for (Item item : player.getInventory()) {
+                if (item.getId().equals(itemId)) {
+                    itemToEquip = item;
+                    break;
+                }
+            }
+
+            if (itemToEquip == null) {
+                System.out.println("Player " + playerId + " tried to equip item not in inventory: " + itemId);
+                return;
+            }
+
+            // 아이템 타입 확인 및 장비 슬롯 설정
+            if ("WEAPON".equals(slotStr)) {
+                player.setEquippedWeapon(itemToEquip.getType());
+            } else if ("HAT".equals(slotStr)) {
+                player.setEquippedHat(itemToEquip.getType());
+            } else if ("TOP".equals(slotStr)) {
+                player.setEquippedTop(itemToEquip.getType());
+            } else if ("BOTTOM".equals(slotStr)) {
+                player.setEquippedBottom(itemToEquip.getType());
+            } else if ("GLOVES".equals(slotStr)) {
+                player.setEquippedGloves(itemToEquip.getType());
+            } else if ("SHOES".equals(slotStr)) {
+                player.setEquippedShoes(itemToEquip.getType());
+            } else {
+                System.out.println("Invalid equipment slot: " + slotStr);
+                return;
+            }
+
+            // 기존에 착용하고 있던 아이템이 있으면 인벤토리로 돌려놓지 않음 (덮어쓰기)
+            // 필요하면 기존 아이템을 인벤토리에 다시 추가할 수 있음
+
+            System.out.println("Player " + playerId + " equipped " + itemToEquip.getType() + " to slot " + slotStr);
+        } catch (Exception e) {
+            System.err.println("Failed to handle equip item: " + message);
+            e.printStackTrace();
+        }
+    }
+
+    private void handleUnequipItem(String message) {
+        try {
+            String slotStr = message.split("\"slot\":\"")[1].split("\"")[0];
+
+            Player player = gameState.getPlayer(playerId);
+            if (player == null) return;
+
+            String unequippedItem = null;
+            
+            if ("WEAPON".equals(slotStr)) {
+                unequippedItem = player.getEquippedWeapon();
+                player.setEquippedWeapon("none");
+            } else if ("HAT".equals(slotStr)) {
+                unequippedItem = player.getEquippedHat();
+                player.setEquippedHat("none");
+            } else if ("TOP".equals(slotStr)) {
+                unequippedItem = player.getEquippedTop();
+                player.setEquippedTop("none");
+            } else if ("BOTTOM".equals(slotStr)) {
+                unequippedItem = player.getEquippedBottom();
+                player.setEquippedBottom("none");
+            } else if ("GLOVES".equals(slotStr)) {
+                unequippedItem = player.getEquippedGloves();
+                player.setEquippedGloves("none");
+            } else if ("SHOES".equals(slotStr)) {
+                unequippedItem = player.getEquippedShoes();
+                player.setEquippedShoes("none");
+            } else {
+                System.out.println("Invalid equipment slot: " + slotStr);
+                return;
+            }
+
+            System.out.println("Player " + playerId + " unequipped " + unequippedItem + " from slot " + slotStr);
+        } catch (Exception e) {
+            System.err.println("Failed to handle unequip item: " + message);
+            e.printStackTrace();
         }
     }
 

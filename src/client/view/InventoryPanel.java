@@ -15,13 +15,22 @@ import java.io.IOException;
 
 public class InventoryPanel extends JPanel {
     private BufferedImage backgroundImage;
-    private Inventory inventory;
+    private Inventory inventory; // 로컬 인벤토리 (하위 호환성)
+    private common.player.Player player; // 플레이어 객체 (플레이어 인벤토리 사용)
     private boolean isVisible = false;
     private int mesos = 0; // 현재 메소
     private Point initialClick; // 드래그 시작 위치
+    
+    // 콜백 함수
+    private InventoryPanelCallback callback;
+    
+    public interface InventoryPanelCallback {
+        void onItemEquip(Item item);
+    }
 
     public InventoryPanel(Inventory inventory) {
         this.inventory = inventory;
+        this.player = null;
         setLayout(null);
         setOpaque(false);
         setBounds(200, 50, 172, 262); // 인벤토리 크기에 맞춤
@@ -34,12 +43,56 @@ public class InventoryPanel extends JPanel {
             System.err.println("Failed to load inventory interface: " + e.getMessage());
         }
 
-        // 드래그 기능 추가
-        addDragListeners();
+        // 드래그 및 더블클릭 기능 추가 (통합 리스너)
+        addDragAndClickListeners();
+    }
+    
+    public void setCallback(InventoryPanelCallback callback) {
+        this.callback = callback;
+    }
+    
+    public void setPlayer(common.player.Player player) {
+        this.player = player;
+        repaint();
+    }
+    
+    private Item getItemAtPosition(int x, int y) {
+        int cols = 4;
+        int slotSize = 31;
+        int startX = 6;
+        int startY = 8;
+        int spacingX = 6;
+        int spacingY = 6;
+
+        // 플레이어 인벤토리를 우선 사용, 없으면 로컬 인벤토리 사용
+        java.util.List<Item> items = (player != null && player.getInventory() != null) 
+            ? player.getInventory() 
+            : inventory.getItems();
+        
+        for (int i = 0; i < items.size() && i < 24; i++) {
+            Item item = items.get(i);
+            int row = i / cols;
+            int col = i % cols;
+            
+            int itemX = startX + col * (slotSize + spacingX);
+            int itemY = startY + row * (slotSize + spacingY);
+            
+            // 클릭한 위치가 이 아이템 슬롯 안에 있는지 확인
+            if (x >= itemX && x <= itemX + slotSize &&
+                y >= itemY && y <= itemY + slotSize) {
+                return item;
+            }
+        }
+        return null;
     }
 
-    private void addDragListeners() {
-        MouseAdapter dragListener = new MouseAdapter() {
+    private void addDragAndClickListeners() {
+        MouseAdapter dragAndClickListener = new MouseAdapter() {
+            private long lastClickTime = 0;
+            private Point lastClickPoint = null;
+            private static final int DOUBLE_CLICK_DELAY = 300; // 밀리초
+            private static final int DOUBLE_CLICK_DISTANCE = 5; // 픽셀
+
             @Override
             public void mousePressed(MouseEvent e) {
                 if (isVisible) {
@@ -78,10 +131,38 @@ public class InventoryPanel extends JPanel {
             public void mouseReleased(MouseEvent e) {
                 initialClick = null;
             }
+            
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (!isVisible) return;
+                
+                // 더블클릭 감지
+                long currentTime = System.currentTimeMillis();
+                Point currentPoint = e.getPoint();
+                
+                if (lastClickPoint != null && 
+                    currentTime - lastClickTime < DOUBLE_CLICK_DELAY &&
+                    Math.abs(currentPoint.x - lastClickPoint.x) < DOUBLE_CLICK_DISTANCE &&
+                    Math.abs(currentPoint.y - lastClickPoint.y) < DOUBLE_CLICK_DISTANCE) {
+                    
+                    // 더블클릭으로 아이템 착용
+                    Item clickedItem = getItemAtPosition(e.getX(), e.getY());
+                    if (clickedItem != null && callback != null) {
+                        System.out.println("Double-clicked item: " + clickedItem.getType());
+                        callback.onItemEquip(clickedItem);
+                    }
+                    
+                    lastClickTime = 0;
+                    lastClickPoint = null;
+                } else {
+                    lastClickTime = currentTime;
+                    lastClickPoint = currentPoint;
+                }
+            }
         };
 
-        addMouseListener(dragListener);
-        addMouseMotionListener(dragListener);
+        addMouseListener(dragAndClickListener);
+        addMouseMotionListener(dragAndClickListener);
     }
 
     @Override
@@ -119,7 +200,10 @@ public class InventoryPanel extends JPanel {
         int spacingX = 6; // 슬롯 간 가로 간격
         int spacingY = 6; // 슬롯 간 세로 간격
 
-        java.util.List<Item> items = inventory.getItems();
+        // 플레이어 인벤토리를 우선 사용, 없으면 로컬 인벤토리 사용
+        java.util.List<Item> items = (player != null && player.getInventory() != null) 
+            ? player.getInventory() 
+            : inventory.getItems();
         
         for (int i = 0; i < items.size() && i < 24; i++) {
             Item item = items.get(i);
@@ -174,6 +258,14 @@ public class InventoryPanel extends JPanel {
     }
 
     public void updateInventory() {
+        repaint();
+    }
+    
+    public void updatePlayer(common.player.Player player) {
+        this.player = player;
+        if (player != null) {
+            this.mesos = player.getMesos();
+        }
         repaint();
     }
 

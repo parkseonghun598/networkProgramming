@@ -53,6 +53,8 @@ public class NetworkHandler implements Runnable {
                     gamePanel.addChatMessage(message);
                 } else if (serverMessage.contains("\"type\":\"ITEM_ADDED\"")) {
                     handleItemAdded(serverMessage);
+                } else if (serverMessage.contains("\"type\":\"MESOS_UPDATE\"")) {
+                    handleMesosUpdate(serverMessage);
                 }
             }
         } catch (IOException e) {
@@ -79,6 +81,17 @@ public class NetworkHandler implements Runnable {
             gamePanel.addItemToInventory(item);
         } catch (Exception e) {
             System.err.println("Failed to parse ITEM_ADDED message: " + message);
+            e.printStackTrace();
+        }
+    }
+    
+    private void handleMesosUpdate(String message) {
+        try {
+            String mesosStr = message.split("\"mesos\":")[1].split("}")[0];
+            int mesos = Integer.parseInt(mesosStr.trim());
+            gamePanel.updateMesos(mesos);
+        } catch (Exception e) {
+            System.err.println("Failed to parse MESOS_UPDATE message: " + message);
             e.printStackTrace();
         }
     }

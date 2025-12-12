@@ -21,8 +21,10 @@ public class Player {
     // 착용 아이템 (캐릭터 외형에 영향)
     private String equippedWeapon = "none"; // 무기
     private String equippedHat = "none"; // 모자
-    private String equippedTop = "none"; // 상의
-    private String equippedBottom = "none"; // 하의
+    private String equippedTop = "defaultTop"; // 상의 (기본 착용)
+    private String equippedBottom = "defaultBottom"; // 하의 (기본 착용)
+    private String equippedGloves = "glove"; // 장갑 (기본 착용)
+    private String equippedShoes = "shoes"; // 신발 (기본 착용)
 
     public String getCharacterType() {
         return characterType;
@@ -159,6 +161,22 @@ public class Player {
 
     public void setEquippedBottom(String equippedBottom) {
         this.equippedBottom = equippedBottom;
+    }
+
+    public String getEquippedGloves() {
+        return equippedGloves;
+    }
+
+    public void setEquippedGloves(String equippedGloves) {
+        this.equippedGloves = equippedGloves;
+    }
+
+    public String getEquippedShoes() {
+        return equippedShoes;
+    }
+
+    public void setEquippedShoes(String equippedShoes) {
+        this.equippedShoes = equippedShoes;
     }
 
     /**

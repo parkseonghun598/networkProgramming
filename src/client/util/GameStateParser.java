@@ -157,6 +157,14 @@ public class GameStateParser {
             if (playerStr.contains("\"equippedBottom\":\"")) {
                 equippedBottom = playerStr.split("\"equippedBottom\":\"")[1].split("\"")[0];
             }
+            String equippedGloves = "none"; // default
+            if (playerStr.contains("\"equippedGloves\":\"")) {
+                equippedGloves = playerStr.split("\"equippedGloves\":\"")[1].split("\"")[0];
+            }
+            String equippedShoes = "none"; // default
+            if (playerStr.contains("\"equippedShoes\":\"")) {
+                equippedShoes = playerStr.split("\"equippedShoes\":\"")[1].split("\"")[0];
+            }
 
             Optional<Player> existingPlayerOpt = players.stream().filter(p -> p.getId().equals(id)).findFirst();
             Player player;
@@ -180,6 +188,8 @@ public class GameStateParser {
             player.setEquippedHat(equippedHat);
             player.setEquippedTop(equippedTop);
             player.setEquippedBottom(equippedBottom);
+            player.setEquippedGloves(equippedGloves);
+            player.setEquippedShoes(equippedShoes);
 
             // Parse inventory
             if (playerStr.contains("\"inventory\":[")) {

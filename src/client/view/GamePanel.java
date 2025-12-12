@@ -29,6 +29,7 @@ public class GamePanel extends JPanel implements KeyListener, MouseListener, Pla
     private NetworkHandler networkHandler;
     private NpcDialogHandler npcDialogHandler;
     private InventoryPanel inventoryPanel;
+    private EquipPanel equipPanel;
     private Inventory inventory;
     private String errorMessage;
     private String myPlayerId;
@@ -113,15 +114,25 @@ public class GamePanel extends JPanel implements KeyListener, MouseListener, Pla
         inventory = new Inventory();
         inventoryPanel = new InventoryPanel(inventory);
         inventoryPanel.hide();
+        
+        // 인벤토리 아이템 착용 콜백 설정
+        inventoryPanel.setCallback(item -> {
+            equipItem(item);
+        });
+        
         add(inventoryPanel);
+        
+        // Initialize equip panel
+        equipPanel = new EquipPanel(slot -> {
+            unequipItem(slot);
+        });
+        equipPanel.hide();
+        add(equipPanel);
 
         try {
             SpriteManager.loadSprites();
             networkHandler = new NetworkHandler(this, "localhost", 12345);
             npcDialogHandler = new NpcDialogHandler(this, networkHandler, this::getMyPlayer);
-            inventoryPanel.setVisible(false);
-            add(inventoryPanel);
-            
             new Thread(networkHandler).start();
         } catch (Exception e) {
             showError("Failed to connect to the server or load assets.");
@@ -201,14 +212,26 @@ public class GamePanel extends JPanel implements KeyListener, MouseListener, Pla
         
         // 인벤토리와 메소 업데이트
         if (inventoryPanel != null) {
-            inventoryPanel.updateInventory();
             Player myPlayer = getMyPlayer();
             if (myPlayer != null) {
-                inventoryPanel.setMesos(myPlayer.getMesos());
+                // 플레이어 인벤토리로 업데이트
+                inventoryPanel.updatePlayer(myPlayer);
+                
+                // 장비 창 업데이트
+                if (equipPanel != null) {
+                    equipPanel.updatePlayer(myPlayer);
+                }
             }
         }
         
         this.errorMessage = null;
+    }
+    
+    public void updateMesos(int mesos) {
+        // 메소 업데이트 (플레이어 객체를 통해 처리되므로 여기서는 인벤토리 패널만 업데이트)
+        if (inventoryPanel != null) {
+            inventoryPanel.setMesos(mesos);
+        }
     }
     
     private void updatePlayerAnimators() {
@@ -294,6 +317,13 @@ public class GamePanel extends JPanel implements KeyListener, MouseListener, Pla
         // I 키: 인벤토리 토글
         if (e.getKeyCode() == KeyEvent.VK_I) {
             inventoryPanel.toggleVisibility();
+            repaint();
+            return;
+        }
+        
+        // E 키: 장비 창 토글
+        if (e.getKeyCode() == KeyEvent.VK_E) {
+            equipPanel.toggleVisibility();
             repaint();
             return;
         }
@@ -513,5 +543,42 @@ public class GamePanel extends JPanel implements KeyListener, MouseListener, Pla
         } else {
             System.out.println("Failed to add item: inventory full");
         }
+    }
+    
+    private void equipItem(common.item.Item item) {
+        if (item == null || networkHandler == null) {
+            return;
+        }
+        
+        // 아이템 타입을 장비 슬롯으로 매핑
+        common.util.ItemSlotMapper.EquipmentSlot slot = 
+            common.util.ItemSlotMapper.getEquipmentSlot(item.getType());
+        
+        if (slot == null) {
+            System.out.println("This item cannot be equipped: " + item.getType());
+            return;
+        }
+        
+        // 서버에 착용 요청 전송
+        String msg = String.format(
+            "{\"type\":\"EQUIP_ITEM\",\"payload\":{\"itemId\":\"%s\",\"slot\":\"%s\"}}",
+            item.getId(), slot.name()
+        );
+        networkHandler.sendMessage(msg);
+        System.out.println("Requested equip item: " + item.getType() + " to slot: " + slot.name());
+    }
+    
+    private void unequipItem(common.util.ItemSlotMapper.EquipmentSlot slot) {
+        if (slot == null || networkHandler == null) {
+            return;
+        }
+        
+        // 서버에 해제 요청 전송
+        String msg = String.format(
+            "{\"type\":\"UNEQUIP_ITEM\",\"payload\":{\"slot\":\"%s\"}}",
+            slot.name()
+        );
+        networkHandler.sendMessage(msg);
+        System.out.println("Requested unequip from slot: " + slot.name());
     }
 }

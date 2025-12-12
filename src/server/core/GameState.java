@@ -8,6 +8,8 @@ import server.map.GameMap;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
@@ -61,6 +63,9 @@ public class GameState {
                             + monster.getHp());
 
                     if (monster.getHp() <= 0) {
+                        // 몬스터 처치 시 아이템 드롭
+                        dropItemsOnMonsterDeath(player.getMapId(), monster.getX(), monster.getY());
+                        
                         map.getMonsters().remove(monster);
                         System.out.println("Monster " + monster.getId() + " died.");
                     }
@@ -159,5 +164,50 @@ public class GameState {
     public List<Item> getItemsInMap(String mapId) {
         List<Item> items = mapItems.get(mapId);
         return items != null ? items : new CopyOnWriteArrayList<>();
+    }
+
+    /**
+     * 몬스터 처치 시 아이템 드롭
+     * - 확정: 코인 (50~200 메소 랜덤)
+     * - 1% 확률: 장비 아이템 (bigWeapon, blackBottom, blackHat, blueHat, brownTop, puppleTop 중 랜덤)
+     */
+    private void dropItemsOnMonsterDeath(String mapId, int monsterX, int monsterY) {
+        Random random = new Random();
+        
+        // 1. 확정 코인 드롭 (50~200 메소 랜덤)
+        int mesosAmount = 50 + random.nextInt(151); // 50~200
+        String coinId = "coin_" + UUID.randomUUID().toString();
+        Item coin = new Item(coinId, "coin", mesosAmount + " 메소", monsterX, monsterY, 
+                           "../img/tabler_coin.png", mesosAmount);
+        addItem(mapId, coin);
+        System.out.println("Dropped coin with " + mesosAmount + " mesos at (" + monsterX + ", " + monsterY + ")");
+        
+        // 2. 1% 확률로 장비 아이템 드롭
+        if (random.nextInt(100) < 1) { // 1% 확률
+            String[] equipmentTypes = {
+                "bigWeapon", "blackBottom", "blackHat", 
+                "blueHat", "brownTop", "puppleTop"
+            };
+            String equipmentType = equipmentTypes[random.nextInt(equipmentTypes.length)];
+            String equipmentId = "item_" + UUID.randomUUID().toString();
+            String equipmentName = getEquipmentName(equipmentType);
+            Item equipment = new Item(equipmentId, equipmentType, equipmentName, 
+                                    monsterX + 30, monsterY, // 코인과 약간 떨어진 위치
+                                    "../img/clothes/" + equipmentType + ".png");
+            addItem(mapId, equipment);
+            System.out.println("Dropped equipment: " + equipmentType + " at (" + (monsterX + 30) + ", " + monsterY + ")");
+        }
+    }
+
+    private String getEquipmentName(String itemType) {
+        switch (itemType) {
+            case "bigWeapon": return "큰 무기";
+            case "blackBottom": return "검은 하의";
+            case "blackHat": return "검은 모자";
+            case "blueHat": return "파란 모자";
+            case "brownTop": return "갈색 상의";
+            case "puppleTop": return "보라 상의";
+            default: return itemType;
+        }
     }
 }
