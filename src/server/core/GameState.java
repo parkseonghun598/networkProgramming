@@ -169,7 +169,14 @@ public class GameState {
     /**
      * 몬스터 처치 시 아이템 드롭
      * - 확정: 코인 (50~200 메소 랜덤)
-     * - 1% 확률: 장비 아이템 (bigWeapon, blackBottom, blackHat, blueHat, brownTop, puppleTop 중 랜덤)
+     * - 장비 아이템 드롭 (확률 조정 가능)
+     * 
+     * 확률 조정 방법:
+     * - 100% 확률: if (true) 또는 조건문 제거
+     * - 50% 확률: if (random.nextInt(100) < 50)
+     * - 10% 확률: if (random.nextInt(100) < 10)
+     * - 5% 확률: if (random.nextInt(100) < 5)
+     * - 1% 확률: if (random.nextInt(100) < 1)
      */
     private void dropItemsOnMonsterDeath(String mapId, int monsterX, int monsterY) {
         Random random = new Random();
@@ -182,8 +189,10 @@ public class GameState {
         addItem(mapId, coin);
         System.out.println("Dropped coin with " + mesosAmount + " mesos at (" + monsterX + ", " + monsterY + ")");
         
-        // 2. 1% 확률로 장비 아이템 드롭
-        if (random.nextInt(100) < 1) { // 1% 확률
+        // 2. 장비 아이템 드롭 (현재: 10% 확률)
+        // 확률을 조정하려면 아래 조건문을 수정하세요:
+        // 예: if (random.nextInt(100) < 50) // 50% 확률
+        if (random.nextInt(100) < 10) { // 10% 확률로 드롭
             String[] equipmentTypes = {
                 "bigWeapon", "blackBottom", "blackHat", 
                 "blueHat", "brownTop", "puppleTop"

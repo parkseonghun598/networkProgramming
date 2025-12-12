@@ -9,7 +9,7 @@ import java.util.List;
 
 public class MapCreator {
     public static GameMap Hennessis() {
-        Portal toBossMap = new Portal(700, 475, 100, 100, "bossMap", 100, 475);
+        Portal toBossMap = new Portal(700, 475, 100, 100, "bossMap", 100, 525);
         return new GameMap(
                 "hennesis",
                 ImagePath.HENNESSIS_IMAGE_PATH,
@@ -21,10 +21,10 @@ public class MapCreator {
 
     public static GameMap WarriorRoom() {
         // 워리어 룸: 첫 접속 맵, 헤네시스로 가는 포탈
-        Portal toHennesys = new Portal(600, 400, 100, 100, "hennesis", 100, 475);
+        Portal toHennesys = new Portal(600, 400, 100, 100, "hennesis", 100, 525);
         
         // NPC 배치
-        NPC warriorNpc = new NPC("npc_warrior", "전사 교관", 200, 420, ImagePath.NPC_WARRIOR_IMAGE_PATH);
+        NPC warriorNpc = new NPC("npc_warrior", "주먹펴고 일어서", 200, 420, ImagePath.NPC_WARRIOR_IMAGE_PATH);
         
         return new GameMap(
                 "warriorRoom",
@@ -41,7 +41,7 @@ public class MapCreator {
     }
 
     public static GameMap BossMap() {
-        Portal toHenesys = new Portal(50, 475, 100, 100, "hennesis", 650, 475);
+        Portal toHenesys = new Portal(50, 475, 100, 100, "hennesis", 650, 525);
         return new GameMap(
                 "bossMap",
                 ImagePath.BOSSBG_IMAGE_PATH,

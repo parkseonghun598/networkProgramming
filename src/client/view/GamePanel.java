@@ -31,6 +31,7 @@ public class GamePanel extends JPanel implements KeyListener, MouseListener, Pla
     private NpcDialogHandler npcDialogHandler;
     private InventoryPanel inventoryPanel;
     private EquipPanel equipPanel;
+    private StatPanel statPanel;
     private Inventory inventory;
     private String errorMessage;
     private String myPlayerId;
@@ -55,7 +56,7 @@ public class GamePanel extends JPanel implements KeyListener, MouseListener, Pla
     private boolean isJumping = false;
     private static final double GRAVITY = 0.5;
     private static final double JUMP_STRENGTH = -12.0;
-    private static final int GROUND_Y = 475;
+    private int groundY = 475; // 맵별로 다른 땅 높이 (기본값 475)
 
     private JTextArea chatArea;
     private JTextField chatInput;
@@ -133,6 +134,11 @@ public class GamePanel extends JPanel implements KeyListener, MouseListener, Pla
         });
         equipPanel.hide();
         add(equipPanel);
+        
+        // Initialize stat panel
+        statPanel = new StatPanel();
+        statPanel.hide();
+        add(statPanel);
 
         try {
             SpriteManager.loadSprites();
@@ -174,8 +180,8 @@ public class GamePanel extends JPanel implements KeyListener, MouseListener, Pla
             velocityY += GRAVITY;
             int newY = myPlayer.getY() + (int) velocityY;
 
-            if (newY >= GROUND_Y) {
-                newY = GROUND_Y;
+            if (newY >= groundY) {
+                newY = groundY;
                 isJumping = false;
                 velocityY = 0;
                 // 점프가 끝났으므로 idle 상태로 변경
@@ -216,12 +222,24 @@ public class GamePanel extends JPanel implements KeyListener, MouseListener, Pla
             setBackgroundImage(newBgPath);
         }
         
+        // 맵별 땅 높이 설정
+        Player myPlayer = getMyPlayer();
+        if (myPlayer != null) {
+            String mapId = myPlayer.getMapId();
+            if ("warriorRoom".equals(mapId)) {
+                groundY = 450; // 전직 화면
+            } else if ("hennesis".equals(mapId) || "bossMap".equals(mapId)) {
+                groundY = 525; // 헤네시스와 보스 방
+            } else {
+                groundY = 475; // 기본값
+            }
+        }
+        
         // 플레이어 애니메이터 업데이트
         updatePlayerAnimators();
         
         // 인벤토리와 메소 업데이트
         if (inventoryPanel != null) {
-            Player myPlayer = getMyPlayer();
             if (myPlayer != null) {
                 // 플레이어 인벤토리로 업데이트
                 inventoryPanel.updatePlayer(myPlayer);
@@ -229,6 +247,11 @@ public class GamePanel extends JPanel implements KeyListener, MouseListener, Pla
                 // 장비 창 업데이트
                 if (equipPanel != null) {
                     equipPanel.updatePlayer(myPlayer);
+                }
+                
+                // 스텟 창 업데이트
+                if (statPanel != null) {
+                    statPanel.updatePlayer(myPlayer);
                 }
             }
         }
@@ -344,6 +367,13 @@ public class GamePanel extends JPanel implements KeyListener, MouseListener, Pla
         // E 키: 장비 창 토글
         if (e.getKeyCode() == KeyEvent.VK_E) {
             equipPanel.toggleVisibility();
+            repaint();
+            return;
+        }
+        
+        // S 키: 스텟 창 토글
+        if (e.getKeyCode() == KeyEvent.VK_S) {
+            statPanel.toggleVisibility();
             repaint();
             return;
         }

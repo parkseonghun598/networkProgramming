@@ -285,7 +285,7 @@ public class InventoryPanel extends JPanel {
         g.setFont(new Font("Arial", Font.BOLD, 14));
         
         String mesosText = String.format("%,d", mesos); // 천 단위 콤마
-        int textX = 120; // 텍스트 X 위치 (오른쪽으로 이동)
+        int textX = 100; // 텍스트 X 위치 (오른쪽으로 이동)
         int textY = 255; // 텍스트 Y 위치 
         
         g.drawString(mesosText, textX, textY);

@@ -40,7 +40,6 @@ public class NpcDialogHandler {
         // 전사 NPC 대화
         if ("npc_warrior".equals(npc.getId())) {
             String[] messages = {
-                "안녕하세요! 당신의 이름을 바꿔드릴 수 있는 미스터 뉴네임입니다.\n게임에 접속해줘서 고맙습니다!",
                 "당신은 전사로 전직할 수 있는 자격을 갖추었습니다.\n전사는 강력한 힘과 방어력을 가진 직업입니다.",
                 "전사로서의 앞날을 기대하겠습니다!\n이 무기를 받아주세요."
             };
@@ -53,16 +52,8 @@ public class NpcDialogHandler {
                         @Override
                         public void onDialogComplete() {
                             closeNpcDialog();
-                            // 5개 아이템 드롭 요청 (1행 4개 + 2행 1개)
+                            // defaultWeapon 하나만 드롭
                             requestItemDrop("defaultWeapon");
-                            try { Thread.sleep(100); } catch (InterruptedException e) {}
-                            requestItemDrop("bigWeapon");
-                            try { Thread.sleep(100); } catch (InterruptedException e) {}
-                            requestItemDrop("blackHat");
-                            try { Thread.sleep(100); } catch (InterruptedException e) {}
-                            requestItemDrop("glove");
-                            try { Thread.sleep(100); } catch (InterruptedException e) {}
-                            requestItemDrop("shoes");
                         }
 
                         @Override

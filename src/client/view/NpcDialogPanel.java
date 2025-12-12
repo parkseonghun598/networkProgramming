@@ -40,7 +40,7 @@ public class NpcDialogPanel extends JPanel {
         }
 
         // NPC Name Label
-        JLabel nameLabel = new JLabel("미스터 뉴네임", SwingConstants.CENTER);
+        JLabel nameLabel = new JLabel("주먹펴고 일어서서", SwingConstants.CENTER);
         nameLabel.setFont(new Font("맑은 고딕", Font.BOLD, 16));
         nameLabel.setForeground(new Color(50, 50, 100));
         nameLabel.setBounds(20, 200, 150, 30);
