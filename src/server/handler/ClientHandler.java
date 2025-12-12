@@ -240,10 +240,10 @@ public class ClientHandler implements Runnable {
                     // 맵에서 제거
                     gameState.removeItem(mapId, itemId);
                     
-                    // 클라이언트에게 메소 업데이트 알림
+                    // 클라이언트에게 메소 업데이트 알림 (획득한 메소 양 포함)
                     String mesosUpdateMsg = String.format(
-                        "{\"type\":\"MESOS_UPDATE\",\"payload\":{\"mesos\":%d}}",
-                        player.getMesos()
+                        "{\"type\":\"MESOS_UPDATE\",\"payload\":{\"mesos\":%d,\"gained\":%d,\"x\":%d,\"y\":%d}}",
+                        player.getMesos(), mesosAmount, item.getX(), item.getY()
                     );
                     sendMessage(mesosUpdateMsg);
                     

@@ -16,6 +16,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
+import java.awt.AlphaComposite;
 import java.io.File;
 import java.io.IOException;
 import javax.imageio.ImageIO;
@@ -46,6 +47,9 @@ public class GamePanel extends JPanel implements KeyListener, MouseListener, Pla
     
     // 플레이어별 애니메이터 관리
     private final Map<String, CharacterAnimator> playerAnimators;
+    
+    // 메소 획득 메시지 리스트
+    private final java.util.List<MesosGainMessage> mesosGainMessages;
 
     private double velocityY = 0;
     private boolean isJumping = false;
@@ -66,6 +70,7 @@ public class GamePanel extends JPanel implements KeyListener, MouseListener, Pla
         this.npcs = new CopyOnWriteArrayList<>();
         this.items = new CopyOnWriteArrayList<>();
         this.playerAnimators = new ConcurrentHashMap<>();
+        this.mesosGainMessages = new CopyOnWriteArrayList<>();
 
         setPreferredSize(new Dimension(800, 600));
         setFocusable(true);
@@ -179,6 +184,10 @@ public class GamePanel extends JPanel implements KeyListener, MouseListener, Pla
             myPlayer.setY(newY);
             sendPlayerUpdate();
         }
+        
+        // 만료된 메소 획득 메시지 제거
+        mesosGainMessages.removeIf(msg -> !msg.isAlive());
+        
         repaint();
     }
 
@@ -232,6 +241,16 @@ public class GamePanel extends JPanel implements KeyListener, MouseListener, Pla
         if (inventoryPanel != null) {
             inventoryPanel.setMesos(mesos);
         }
+    }
+    
+    /**
+     * 메소 획득 메시지를 추가합니다.
+     * @param amount 획득한 메소 양
+     * @param x 화면 X 좌표
+     * @param y 화면 Y 좌표
+     */
+    public void addMesosGainMessage(int amount, int x, int y) {
+        mesosGainMessages.add(new MesosGainMessage(amount, x, y));
     }
     
     private void updatePlayerAnimators() {
@@ -413,6 +432,53 @@ public class GamePanel extends JPanel implements KeyListener, MouseListener, Pla
 
         // Render Cooldown UI
         renderCooldownUI(g);
+        
+        // Render Mesos Gain Messages
+        renderMesosGainMessages(g);
+    }
+    
+    /**
+     * 메소 획득 메시지를 화면에 렌더링합니다.
+     */
+    private void renderMesosGainMessages(Graphics g) {
+        Graphics2D g2d = (Graphics2D) g.create();
+        
+        for (MesosGainMessage msg : mesosGainMessages) {
+            if (!msg.isAlive()) continue;
+            
+            float alpha = msg.getAlpha();
+            int x = msg.getX();
+            int y = msg.getCurrentY();
+            int amount = msg.getAmount();
+            
+            // 투명도 설정
+            g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha));
+            
+            // 금색 동전 이미지 로드
+            Image coinImage = SpriteManager.getSprite("coin");
+            if (coinImage == null) {
+                coinImage = SpriteManager.getSpriteByPath("../img/tabler_coin.png");
+            }
+            
+            // 동전 이미지 그리기
+            if (coinImage != null) {
+                int coinSize = 24;
+                g2d.drawImage(coinImage, x, y - coinSize / 2, coinSize, coinSize, null);
+                x += coinSize + 5; // 동전 오른쪽에 텍스트 표시
+            }
+            
+            // 메소 양 텍스트 그리기
+            g2d.setFont(new Font("Arial", Font.BOLD, 18));
+            
+            // 텍스트 그림자 효과
+            g2d.setColor(new Color(0, 0, 0, (int)(alpha * 100)));
+            g2d.drawString("+" + amount, x + 2, y + 2);
+            
+            g2d.setColor(new Color(255, 215, 0, (int)(alpha * 255))); // 금색
+            g2d.drawString("+" + amount, x, y);
+        }
+        
+        g2d.dispose();
     }
 
     private void renderCooldownUI(Graphics g) {

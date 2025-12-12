@@ -280,13 +280,14 @@ public class InventoryPanel extends JPanel {
     }
 
     private void drawMesos(Graphics g) {
-        // 메소 아이콘 옆에 금액 표시
-        // item_interface.png에서 메소 아이콘은 왼쪽 하단에 위치
-        g.setColor(Color.WHITE);
-        g.setFont(new Font("Arial", Font.BOLD, 12));
+        // 메소 금액 표시 (인벤토리 창 하단)
+        g.setColor(Color.BLACK);
+        g.setFont(new Font("Arial", Font.BOLD, 14));
         
-        // 메소 금액 표시 위치 (메소 아이콘 오른쪽)
         String mesosText = String.format("%,d", mesos); // 천 단위 콤마
-        g.drawString(mesosText, 40, 253); // 메소 아이콘 오른쪽
+        int textX = 120; // 텍스트 X 위치 (오른쪽으로 이동)
+        int textY = 255; // 텍스트 Y 위치 
+        
+        g.drawString(mesosText, textX, textY);
     }
 }

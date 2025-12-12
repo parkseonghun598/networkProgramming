@@ -87,9 +87,30 @@ public class NetworkHandler implements Runnable {
     
     private void handleMesosUpdate(String message) {
         try {
-            String mesosStr = message.split("\"mesos\":")[1].split("}")[0];
+            String mesosStr = message.split("\"mesos\":")[1].split(",")[0];
             int mesos = Integer.parseInt(mesosStr.trim());
             gamePanel.updateMesos(mesos);
+            
+            // 획득한 메소 양과 위치 파싱
+            if (message.contains("\"gained\":")) {
+                String gainedStr = message.split("\"gained\":")[1].split(",")[0];
+                int gained = Integer.parseInt(gainedStr.trim());
+                
+                // 위치 파싱 (있으면 사용, 없으면 플레이어 위치 사용)
+                int x = 0;
+                int y = 0;
+                if (message.contains("\"x\":")) {
+                    String xStr = message.split("\"x\":")[1].split(",")[0];
+                    x = Integer.parseInt(xStr.trim());
+                }
+                if (message.contains("\"y\":")) {
+                    String yStr = message.split("\"y\":")[1].split("}")[0];
+                    y = Integer.parseInt(yStr.trim());
+                }
+                
+                // 메소 획득 메시지 추가
+                gamePanel.addMesosGainMessage(gained, x, y);
+            }
         } catch (Exception e) {
             System.err.println("Failed to parse MESOS_UPDATE message: " + message);
             e.printStackTrace();
