@@ -6,14 +6,12 @@ import javax.swing.*;
 
 public class LoginFrame extends JFrame {
     private LoginPanel loginPanel;
-    private CharacterSelectPanel characterSelectPanel;
 
     public LoginFrame() {
         setTitle("Mini MapleStory - Login");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setResizable(false);
 
-        // Show login panel first
         showLoginPanel();
 
         pack();
@@ -26,29 +24,12 @@ public class LoginFrame extends JFrame {
         loginPanel = new LoginPanel(new LoginPanel.LoginCallback() {
             @Override
             public void onLoginSuccess(User user) {
-                // Skip character selection, go directly to game with defaultWarrior
                 user.setCharacterType("defaultWarrior");
                 openGameFrame(user);
             }
         });
 
         add(loginPanel);
-        pack();
-        revalidate();
-        repaint();
-    }
-
-    private void showCharacterSelectPanel(User user) {
-        getContentPane().removeAll();
-
-        characterSelectPanel = new CharacterSelectPanel(user, new CharacterSelectPanel.CharacterSelectCallback() {
-            @Override
-            public void onCharacterSelected(User user) {
-                openGameFrame(user);
-            }
-        });
-
-        add(characterSelectPanel);
         pack();
         revalidate();
         repaint();

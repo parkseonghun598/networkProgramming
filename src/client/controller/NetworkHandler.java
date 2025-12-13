@@ -66,7 +66,6 @@ public class NetworkHandler implements Runnable {
     public void sendMessage(String message) {
         if (out != null) {
             out.println(message);
-            // System.out.println("Sent to server: " + message); // Optional: for debugging
         }
     }
 
