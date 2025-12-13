@@ -372,8 +372,8 @@ public class GamePanel extends JPanel implements KeyListener, MouseListener, Pla
             return;
         }
         
-        // E 키: 장비 창 토글
-        if (e.getKeyCode() == KeyEvent.VK_E) {
+        // O 키: 장비 창 토글
+        if (e.getKeyCode() == KeyEvent.VK_O) {
             equipPanel.toggleVisibility();
             // 패널 토글 후 포커스를 GamePanel로 유지
             requestFocusInWindow();
@@ -615,28 +615,73 @@ public class GamePanel extends JPanel implements KeyListener, MouseListener, Pla
     }
 
     private void renderSingleSkillCooldown(Graphics g, String skillType, String keyBind, int x, int y, int size) {
-        g.setColor(Color.GRAY);
-        g.fillRect(x, y, size, size);
-        g.setColor(Color.WHITE);
-        g.drawRect(x, y, size, size);
-        g.drawString(keyBind, x + 5, y + 15);
-
+        Graphics2D g2d = (Graphics2D) g.create();
+        
+        // 스킬 아이콘 이미지 로드
+        Image skillIcon = SpriteManager.getSprite(skillType + "_icon");
+        
+        // 배경 그리기 (검은색 테두리)
+        g2d.setColor(Color.BLACK);
+        g2d.fillRect(x - 1, y - 1, size + 2, size + 2);
+        
+        // 스킬 이미지를 배경으로 그리기
+        if (skillIcon != null) {
+            // 스킬 이미지를 슬롯 크기에 맞게 그리기
+            g2d.drawImage(skillIcon, x, y, size, size, null);
+        } else {
+            // 이미지가 없으면 회색 배경
+            g2d.setColor(Color.GRAY);
+            g2d.fillRect(x, y, size, size);
+        }
+        
+        // 쿨다운 체크
+        boolean onCooldown = false;
         if (skillCooldowns.containsKey(skillType)) {
             long lastUsed = skillCooldowns.get(skillType);
-            long currentTime = System.currentTimeMillis();
-            long elapsed = currentTime - lastUsed;
-            long cooldown = skillCooldownDurations.getOrDefault(skillType, 2000L);
-
-            if (elapsed < cooldown) {
-                int arc = (int) (360 * (1.0 - (double) elapsed / cooldown));
-                g.setColor(new Color(0, 0, 0, 150));
-                g.fillArc(x, y, size, size, 90, arc);
-
-                g.setColor(Color.WHITE);
-                String timeLeft = String.format("%.1f", (cooldown - elapsed) / 1000.0);
-                g.drawString(timeLeft, x + 15, y + 30);
+            long now = System.currentTimeMillis();
+            long cooldownDuration = skillCooldownDurations.getOrDefault(skillType, 2000L);
+            if (now - lastUsed < cooldownDuration) {
+                onCooldown = true;
+                // 쿨다운 중일 때 어둡게 표시
+                g2d.setColor(new Color(0, 0, 0, 150)); // 반투명 검은색 오버레이
+                g2d.fillRect(x, y, size, size);
+                
+                // 쿨다운 시간 표시
+                long remainingTime = cooldownDuration - (now - lastUsed);
+                
+                // 쿨다운 시간 텍스트 (초 단위)
+                g2d.setColor(Color.WHITE);
+                g2d.setFont(new Font("Arial", Font.BOLD, 12));
+                String cooldownText = String.format("%.1f", remainingTime / 1000.0);
+                FontMetrics fm = g2d.getFontMetrics();
+                int textX = x + (size - fm.stringWidth(cooldownText)) / 2;
+                int textY = y + size / 2 + fm.getAscent() / 2 - 2;
+                g2d.drawString(cooldownText, textX, textY);
+                
+                // 시계가 돌아가는 애니메이션 (기존 코드)
+                long elapsed = now - lastUsed;
+                int arc = (int) (360 * (1.0 - (double) elapsed / cooldownDuration));
+                g2d.setColor(new Color(0, 0, 0, 150));
+                g2d.fillArc(x, y, size, size, 90, arc);
             }
         }
+        
+        // 키바인드 텍스트 (왼쪽 상단 모서리)
+        if (!onCooldown) {
+            g2d.setFont(new Font("Arial", Font.BOLD, 14));
+            // 텍스트 그림자 효과
+            g2d.setColor(Color.BLACK);
+            g2d.drawString(keyBind, x + 4, y + 18);
+            g2d.setColor(Color.WHITE);
+            g2d.drawString(keyBind, x + 3, y + 17);
+        }
+        
+        // 테두리
+        g2d.setColor(Color.WHITE);
+        g2d.setStroke(new java.awt.BasicStroke(2));
+        g2d.drawRect(x, y, size, size);
+        
+        g2d.dispose();
     }
 
     @Override

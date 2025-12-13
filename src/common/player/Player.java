@@ -235,27 +235,30 @@ public class Player {
 
     /**
      * 착용한 아이템 조합을 기반으로 캐릭터 폴더 경로를 생성합니다.
-     * - 기본 장비(defaultTop, defaultBottom, glove, shoes)는 경로에서 제외
-     * - 커스텀 장비만 경로에 포함
-     * 예: "defaultWarrior_bigWeapon_blackBottom_brownTop_blackHat"
+     * - 초기 상태(equippedWeapon = "none"): "defaultWarrior" 폴더 사용
+     * - defaultWeapon 착용: "defaultWarrior_none_none_none_none" 폴더 사용
+     * - 커스텀 장비 착용: "defaultWarrior_{weapon}_{bottom}_{top}_{hat}" 형식
+     * 예: "defaultWarrior" (초기 상태, 아무 무기도 착용 안 함)
+     * 예: "defaultWarrior_none_none_none_none" (defaultWeapon 착용)
+     * 예: "defaultWarrior_bigWeapon_blackBottom_brownTop_blackHat" (커스텀 장비)
      */
     public String getCharacterFolderPath() {
-        // 커스텀 장비만 추출 (기본 장비는 제외)
-        String weapon = (equippedWeapon != null && !equippedWeapon.equals("none") && !equippedWeapon.equals("defaultWeapon")) 
-                        ? equippedWeapon : "none";
-        String bottom = (equippedBottom != null && !equippedBottom.equals("none") && !equippedBottom.equals("defaultBottom")) 
-                        ? equippedBottom : "none";
-        String top = (equippedTop != null && !equippedTop.equals("none") && !equippedTop.equals("defaultTop")) 
-                     ? equippedTop : "none";
-        String hat = (equippedHat != null && !equippedHat.equals("none")) 
-                     ? equippedHat : "none";
-        
-        // 모든 장비가 기본값이면 기본 경로 사용
-        if (weapon.equals("none") && bottom.equals("none") && top.equals("none") && hat.equals("none")) {
+        // 무기 처리: "none"이면 기본 경로, "defaultWeapon"이면 "none"으로 변환하여 경로 생성
+        if (equippedWeapon == null || equippedWeapon.equals("none")) {
+            // 초기 상태: 기본 경로 사용
             return characterType;
         }
         
-        // 커스텀 장비만 경로에 포함
+        // 기본 장비는 "none"으로 변환, 커스텀 장비는 그대로 사용
+        String weapon = equippedWeapon.equals("defaultWeapon") ? "none" : equippedWeapon;
+        String bottom = (equippedBottom == null || equippedBottom.equals("none") || equippedBottom.equals("defaultBottom")) 
+                        ? "none" : equippedBottom;
+        String top = (equippedTop == null || equippedTop.equals("none") || equippedTop.equals("defaultTop")) 
+                     ? "none" : equippedTop;
+        String hat = (equippedHat == null || equippedHat.equals("none")) 
+                     ? "none" : equippedHat;
+        
+        // 형식: characterType_weapon_bottom_top_hat
         return String.format("%s_%s_%s_%s_%s", characterType, weapon, bottom, top, hat);
     }
 }
