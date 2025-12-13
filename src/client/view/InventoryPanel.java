@@ -237,10 +237,6 @@ public class InventoryPanel extends JPanel {
                 String displayText = item.getType() != null ? item.getType() : "ITEM";
                 g.drawString(displayText.substring(0, Math.min(4, displayText.length())), x + 5, y + 18);
             }
-            
-            // 디버깅용: 슬롯 경계선 그리기 (임시)
-            g.setColor(Color.RED);
-            g.drawRect(x, y, slotSize, slotSize);
         }
     }
 

@@ -65,6 +65,13 @@ public class SpriteManager {
             } else {
                 System.err.println("coin sprite not found: " + coinFile.getAbsolutePath());
             }
+            
+            // Load skill images for UI
+            sprites.put("skill1_icon", new ImageIcon(SKILL_IMAGE_PATH1).getImage());
+            sprites.put("skill2_icon", new ImageIcon(SKILL_IMAGE_PATH2).getImage());
+            sprites.put("skill3_icon", new ImageIcon(SKILL_IMAGE_PATH3).getImage());
+            sprites.put("skill4_icon", new ImageIcon(SKILL_IMAGE_PATH4).getImage());
+            System.out.println("Loaded skill icons for UI");
         } catch (IOException e) {
             System.err.println("Failed to load sprites: " + e.getMessage());
             e.printStackTrace();

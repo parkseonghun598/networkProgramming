@@ -239,14 +239,6 @@ public class EquipPanel extends JPanel {
         int shoesX = (int) (SHOES_SLOT_X_BASE * scaleX);
         int shoesY = (int) (SHOES_SLOT_Y_BASE * scaleY);
         
-        // 모든 슬롯에 빨간색 테두리 그리기 
-        g.setColor(Color.RED);
-        g.drawRect(capX, capY, SLOT_SIZE, SLOT_SIZE);
-        g.drawRect(clothesX, clothesY, SLOT_SIZE, SLOT_SIZE);
-        g.drawRect(pantsX, pantsY, SLOT_SIZE, SLOT_SIZE);
-        g.drawRect(weaponX, weaponY, SLOT_SIZE, SLOT_SIZE);
-        g.drawRect(glovesX, glovesY, SLOT_SIZE, SLOT_SIZE);
-        g.drawRect(shoesX, shoesY, SLOT_SIZE, SLOT_SIZE);
         
         // 착용된 아이템을 슬롯에 표시
         drawEquippedItem(g, capX, capY, currentPlayer.getEquippedHat());
