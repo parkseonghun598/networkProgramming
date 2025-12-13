@@ -17,12 +17,17 @@ public class Player {
     private String characterType = "defaultWarrior"; // 캐릭터 스킨
     private List<Item> inventory = new ArrayList<>(); // 인벤토리
     private int mesos = 0; // 메소 (게임 화폐)
+    private int level = 1; // 레벨 (1~5)
+    private int xp = 0; // 현재 경험치
+    private int maxXp = 100; // 레벨업에 필요한 경험치
     
     // 착용 아이템 (캐릭터 외형에 영향)
     private String equippedWeapon = "none"; // 무기
     private String equippedHat = "none"; // 모자
-    private String equippedTop = "none"; // 상의
-    private String equippedBottom = "none"; // 하의
+    private String equippedTop = "defaultTop"; // 상의 (기본 착용)
+    private String equippedBottom = "defaultBottom"; // 하의 (기본 착용)
+    private String equippedGloves = "glove"; // 장갑 (기본 착용)
+    private String equippedShoes = "shoes"; // 신발 (기본 착용)
 
     public String getCharacterType() {
         return characterType;
@@ -127,6 +132,57 @@ public class Player {
         }
         return false;
     }
+    
+    // 레벨 관련 getter/setter
+    public int getLevel() {
+        return level;
+    }
+    
+    public void setLevel(int level) {
+        // 최대 레벨 5로 제한
+        this.level = Math.min(Math.max(1, level), 5);
+    }
+    
+    public int getXp() {
+        return xp;
+    }
+    
+    public void setXp(int xp) {
+        this.xp = Math.max(0, xp);
+    }
+    
+    public int getMaxXp() {
+        return maxXp;
+    }
+    
+    public void setMaxXp(int maxXp) {
+        this.maxXp = maxXp;
+    }
+    
+    /**
+     * 경험치를 추가하고 레벨업 여부를 반환합니다
+     * @param amount 추가할 경험치
+     * @return 레벨업했으면 true
+     */
+    public boolean addXp(int amount) {
+        this.xp += amount;
+        
+        // 레벨업 체크
+        if (this.xp >= this.maxXp && this.level < 5) {
+            this.xp -= this.maxXp;
+            this.level++;
+            // 다음 레벨업에 필요한 경험치 증가 (레벨마다 +50)
+            this.maxXp = 100 + (this.level - 1) * 50;
+            return true;
+        }
+        
+        // 최대 레벨이면 경험치를 maxXp로 제한
+        if (this.level >= 5) {
+            this.xp = Math.min(this.xp, this.maxXp);
+        }
+        
+        return false;
+    }
 
     // 착용 아이템 getter/setter
     public String getEquippedWeapon() {
@@ -161,30 +217,45 @@ public class Player {
         this.equippedBottom = equippedBottom;
     }
 
+    public String getEquippedGloves() {
+        return equippedGloves;
+    }
+
+    public void setEquippedGloves(String equippedGloves) {
+        this.equippedGloves = equippedGloves;
+    }
+
+    public String getEquippedShoes() {
+        return equippedShoes;
+    }
+
+    public void setEquippedShoes(String equippedShoes) {
+        this.equippedShoes = equippedShoes;
+    }
+
     /**
      * 착용한 아이템 조합을 기반으로 캐릭터 폴더 경로를 생성합니다.
-     * - 아무것도 착용 안했으면: "defaultWarrior"
-     * - 하나라도 착용했으면: "defaultWarrior_무기_하의_상의_모자" (none 포함)
-     * 예: "defaultWarrior_defaultWeapon_none_none_none"
+     * - 기본 장비(defaultTop, defaultBottom, glove, shoes)는 경로에서 제외
+     * - 커스텀 장비만 경로에 포함
+     * 예: "defaultWarrior_bigWeapon_blackBottom_brownTop_blackHat"
      */
     public String getCharacterFolderPath() {
-        // 아무것도 착용하지 않은 상태 (모두 none)
-        boolean allNone = (equippedWeapon == null || equippedWeapon.equals("none")) &&
-                          (equippedBottom == null || equippedBottom.equals("none")) &&
-                          (equippedTop == null || equippedTop.equals("none")) &&
-                          (equippedHat == null || equippedHat.equals("none"));
+        // 커스텀 장비만 추출 (기본 장비는 제외)
+        String weapon = (equippedWeapon != null && !equippedWeapon.equals("none") && !equippedWeapon.equals("defaultWeapon")) 
+                        ? equippedWeapon : "none";
+        String bottom = (equippedBottom != null && !equippedBottom.equals("none") && !equippedBottom.equals("defaultBottom")) 
+                        ? equippedBottom : "none";
+        String top = (equippedTop != null && !equippedTop.equals("none") && !equippedTop.equals("defaultTop")) 
+                     ? equippedTop : "none";
+        String hat = (equippedHat != null && !equippedHat.equals("none")) 
+                     ? equippedHat : "none";
         
-        if (allNone) {
-            // 기본 상태: defaultWarrior 폴더 사용
+        // 모든 장비가 기본값이면 기본 경로 사용
+        if (weapon.equals("none") && bottom.equals("none") && top.equals("none") && hat.equals("none")) {
             return characterType;
-        } else {
-            // 하나라도 착용했으면 모든 슬롯을 명시 (none 포함)
-            String weapon = (equippedWeapon != null && !equippedWeapon.equals("none")) ? equippedWeapon : "none";
-            String bottom = (equippedBottom != null && !equippedBottom.equals("none")) ? equippedBottom : "none";
-            String top = (equippedTop != null && !equippedTop.equals("none")) ? equippedTop : "none";
-            String hat = (equippedHat != null && !equippedHat.equals("none")) ? equippedHat : "none";
-            
-            return String.format("%s_%s_%s_%s_%s", characterType, weapon, bottom, top, hat);
         }
+        
+        // 커스텀 장비만 경로에 포함
+        return String.format("%s_%s_%s_%s_%s", characterType, weapon, bottom, top, hat);
     }
 }

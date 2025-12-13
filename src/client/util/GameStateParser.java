@@ -19,29 +19,54 @@ public class GameStateParser {
 
     public static void parseAndUpdate(String jsonState, List<Player> players,
             List<Monster> monsters, List<Skill> skills, List<Portal> portals, List<NPC> npcs, List<Item> items, String myPlayerId) {
+        // 각 파싱 메서드를 독립적으로 실행하여 하나가 실패해도 다른 것들은 계속 진행
         try {
             if (jsonState.contains("\"players\":[")) {
                 parsePlayers(jsonState, players, myPlayerId);
             }
+        } catch (Exception e) {
+            System.err.println("Failed to parse players: " + e.getMessage());
+        }
 
+        try {
             if (jsonState.contains("\"monsters\":[")) {
                 parseMonsters(jsonState, monsters);
             }
+        } catch (Exception e) {
+            System.err.println("Failed to parse monsters: " + e.getMessage());
+        }
 
+        try {
             if (jsonState.contains("\"skills\":[")) {
                 parseSkills(jsonState, skills);
             }
+        } catch (Exception e) {
+            System.err.println("Failed to parse skills: " + e.getMessage());
+        }
+        
+        try {
             if (jsonState.contains("\"portals\":[")) {
                 parsePortals(jsonState, portals);
             }
+        } catch (Exception e) {
+            System.err.println("Failed to parse portals: " + e.getMessage());
+        }
+        
+        try {
             if (jsonState.contains("\"npcs\":[")) {
                 parseNpcs(jsonState, npcs);
             }
+        } catch (Exception e) {
+            System.err.println("Failed to parse npcs: " + e.getMessage());
+        }
+        
+        try {
             if (jsonState.contains("\"items\":[")) {
                 parseItems(jsonState, items);
             }
         } catch (Exception e) {
-            System.err.println("Failed to parse game state: " + jsonState);
+            System.err.println("Failed to parse items: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
@@ -139,6 +164,30 @@ public class GameStateParser {
                     // Keep default
                 }
             }
+            int level = 1; // default
+            if (playerStr.contains("\"level\":")) {
+                try {
+                    level = Integer.parseInt(playerStr.split("\"level\":")[1].split(",")[0]);
+                } catch (Exception e) {
+                    // Keep default
+                }
+            }
+            int xp = 0; // default
+            if (playerStr.contains("\"xp\":")) {
+                try {
+                    xp = Integer.parseInt(playerStr.split("\"xp\":")[1].split(",")[0]);
+                } catch (Exception e) {
+                    // Keep default
+                }
+            }
+            int maxXp = 100; // default
+            if (playerStr.contains("\"maxXp\":")) {
+                try {
+                    maxXp = Integer.parseInt(playerStr.split("\"maxXp\":")[1].split(",")[0]);
+                } catch (Exception e) {
+                    // Keep default
+                }
+            }
             
             // Parse equipped items
             String equippedWeapon = "none"; // default
@@ -157,6 +206,14 @@ public class GameStateParser {
             if (playerStr.contains("\"equippedBottom\":\"")) {
                 equippedBottom = playerStr.split("\"equippedBottom\":\"")[1].split("\"")[0];
             }
+            String equippedGloves = "none"; // default
+            if (playerStr.contains("\"equippedGloves\":\"")) {
+                equippedGloves = playerStr.split("\"equippedGloves\":\"")[1].split("\"")[0];
+            }
+            String equippedShoes = "none"; // default
+            if (playerStr.contains("\"equippedShoes\":\"")) {
+                equippedShoes = playerStr.split("\"equippedShoes\":\"")[1].split("\"")[0];
+            }
 
             Optional<Player> existingPlayerOpt = players.stream().filter(p -> p.getId().equals(id)).findFirst();
             Player player;
@@ -174,12 +231,17 @@ public class GameStateParser {
             player.setMapId(mapId);
             player.setCharacterType(characterType);
             player.setMesos(mesos);
+            player.setLevel(level);
+            player.setXp(xp);
+            player.setMaxXp(maxXp);
             
             // Set equipped items
             player.setEquippedWeapon(equippedWeapon);
             player.setEquippedHat(equippedHat);
             player.setEquippedTop(equippedTop);
             player.setEquippedBottom(equippedBottom);
+            player.setEquippedGloves(equippedGloves);
+            player.setEquippedShoes(equippedShoes);
 
             // Parse inventory
             if (playerStr.contains("\"inventory\":[")) {
@@ -352,23 +414,89 @@ public class GameStateParser {
 
     private static void parseItems(String jsonState, List<Item> items) {
         items.clear();
-        String itemsJson = jsonState.split("\"items\":\\[")[1].split("\\]")[0];
-        if (!itemsJson.isEmpty()) {
-            for (String itemStr : itemsJson.split("\\},\\{")) {
+        try {
+            if (!jsonState.contains("\"items\":[")) {
+                return;
+            }
+            
+            String itemsJson = jsonState.split("\"items\":\\[")[1].split("\\]")[0];
+            if (itemsJson.isEmpty() || itemsJson.trim().isEmpty()) {
+                return;
+            }
+            
+            // 첫 번째 아이템 앞의 { 제거, 마지막 아이템 뒤의 } 제거
+            itemsJson = itemsJson.trim();
+            if (itemsJson.startsWith("{")) {
+                itemsJson = itemsJson.substring(1);
+            }
+            if (itemsJson.endsWith("}")) {
+                itemsJson = itemsJson.substring(0, itemsJson.length() - 1);
+            }
+            
+            // 아이템들을 분리 (},{ 로 분리)
+            String[] itemStrings = itemsJson.split("\\},\\{");
+            
+            for (String itemStr : itemStrings) {
                 try {
-                    String id = itemStr.split("\"id\":\"")[1].split("\"")[0];
-                    String type = itemStr.split("\"type\":\"")[1].split("\"")[0];
-                    String name = itemStr.split("\"name\":\"")[1].split("\"")[0];
-                    int x = Integer.parseInt(itemStr.split("\"x\":")[1].split(",")[0]);
-                    int y = Integer.parseInt(itemStr.split("\"y\":")[1].split(",")[0]);
-                    String spritePath = itemStr.split("\"spritePath\":\"")[1].split("\"")[0];
+                    // 각 아이템 앞뒤의 { } 제거
+                    itemStr = itemStr.trim();
+                    if (itemStr.startsWith("{")) {
+                        itemStr = itemStr.substring(1);
+                    }
+                    if (itemStr.endsWith("}")) {
+                        itemStr = itemStr.substring(0, itemStr.length() - 1);
+                    }
+                    
+                    String id = extractField(itemStr, "id");
+                    String type = extractField(itemStr, "type");
+                    String name = extractField(itemStr, "name");
+                    int x = extractIntField(itemStr, "x");
+                    int y = extractIntField(itemStr, "y");
+                    String spritePath = extractField(itemStr, "spritePath");
+                    
+                    // value 필드 파싱 (코인 아이템의 경우, 선택적)
+                    int value = 0;
+                    if (itemStr.contains("\"value\":")) {
+                        value = extractIntField(itemStr, "value");
+                    }
 
-                    Item item = new Item(id, type, name, x, y, spritePath);
+                    Item item = new Item(id, type, name, x, y, spritePath, value);
                     items.add(item);
                 } catch (Exception e) {
-                    System.err.println("Failed to parse Item: " + itemStr);
+                    System.err.println("Failed to parse Item: " + itemStr + " - " + e.getMessage());
+                    e.printStackTrace();
                 }
             }
+        } catch (Exception e) {
+            System.err.println("Failed to parse items array: " + e.getMessage());
+            e.printStackTrace();
         }
+    }
+    
+    private static String extractField(String jsonStr, String fieldName) {
+        try {
+            String pattern = "\"" + fieldName + "\":\"";
+            if (jsonStr.contains(pattern)) {
+                String afterPattern = jsonStr.split(pattern, 2)[1];
+                return afterPattern.split("\"")[0];
+            }
+        } catch (Exception e) {
+            System.err.println("Failed to extract field " + fieldName + " from: " + jsonStr);
+        }
+        return "";
+    }
+    
+    private static int extractIntField(String jsonStr, String fieldName) {
+        try {
+            String pattern = "\"" + fieldName + "\":";
+            if (jsonStr.contains(pattern)) {
+                String afterPattern = jsonStr.split(pattern, 2)[1];
+                String valueStr = afterPattern.split(",")[0].split("}")[0].trim();
+                return Integer.parseInt(valueStr);
+            }
+        } catch (Exception e) {
+            System.err.println("Failed to extract int field " + fieldName + " from: " + jsonStr);
+        }
+        return 0;
     }
 }

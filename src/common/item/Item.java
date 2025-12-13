@@ -2,11 +2,12 @@ package common.item;
 
 public class Item {
     private String id;
-    private String type; // "defaultWeapon", etc.
+    private String type; // "defaultWeapon", "coin", etc.
     private String name;
     private int x;
     private int y;
     private String spritePath;
+    private int value; // 코인 아이템의 경우 메소 값, 일반 아이템은 0
 
     public Item(String id, String type, String name, int x, int y, String spritePath) {
         this.id = id;
@@ -15,6 +16,17 @@ public class Item {
         this.x = x;
         this.y = y;
         this.spritePath = spritePath;
+        this.value = 0;
+    }
+
+    public Item(String id, String type, String name, int x, int y, String spritePath, int value) {
+        this.id = id;
+        this.type = type;
+        this.name = name;
+        this.x = x;
+        this.y = y;
+        this.spritePath = spritePath;
+        this.value = value;
     }
 
     public String getId() {
@@ -63,6 +75,14 @@ public class Item {
 
     public void setSpritePath(String spritePath) {
         this.spritePath = spritePath;
+    }
+
+    public int getValue() {
+        return value;
+    }
+
+    public void setValue(int value) {
+        this.value = value;
     }
 }
 

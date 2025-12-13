@@ -104,6 +104,17 @@ public abstract class Skill {
     public int getDamage() {
         return damage;
     }
+    
+    /**
+     * 스킬 데미지를 설정합니다 (기본 데미지 + 공격력)
+     * @param baseDamage 스킬의 기본 데미지
+     * @param playerAttack 플레이어의 공격력
+     */
+    public void setDamageWithAttack(int baseDamage, int playerAttack) {
+        // 기본 공격력(10)을 기준으로 공격력 증가분만 추가
+        int attackBonus = playerAttack - 10;
+        this.damage = baseDamage + attackBonus;
+    }
 
     public long getCooldown() {
         return cooldown;
