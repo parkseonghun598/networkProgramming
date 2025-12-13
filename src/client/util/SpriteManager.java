@@ -55,6 +55,7 @@ public class SpriteManager {
             
             // Monsters and effects
             sprites.put("그린 슬라임", new ImageIcon(GREEN_SLIME_IMAGE_PATH).getImage());
+            sprites.put("드래곤", new ImageIcon(DRAGON_IMAGE_PATH).getImage());
             sprites.put("portal", new ImageIcon(PORTAL_GIF_PATH).getImage());
             
             // Load coin sprite

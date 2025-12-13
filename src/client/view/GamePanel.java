@@ -45,10 +45,10 @@ public class GamePanel extends JPanel implements KeyListener, MouseListener, Pla
     private final List<common.item.Item> items;
     private String currentBackgroundImagePath;
     private BufferedImage background;
-    
+
     // 플레이어별 애니메이터 관리
     private final Map<String, CharacterAnimator> playerAnimators;
-    
+
     // 메소 획득 메시지 리스트
     private final java.util.List<MesosGainMessage> mesosGainMessages;
 
@@ -121,21 +121,21 @@ public class GamePanel extends JPanel implements KeyListener, MouseListener, Pla
         inventory = new Inventory();
         inventoryPanel = new InventoryPanel(inventory);
         inventoryPanel.hide();
-        
+
         // 인벤토리 아이템 착용 콜백 설정
         inventoryPanel.setCallback(item -> {
             equipItem(item);
         });
-        
+
         add(inventoryPanel);
-        
+
         // Initialize equip panel
         equipPanel = new EquipPanel(slot -> {
             unequipItem(slot);
         });
         equipPanel.hide();
         add(equipPanel);
-        
+
         // Initialize stat panel
         statPanel = new StatPanel();
         statPanel.hide();
@@ -191,10 +191,10 @@ public class GamePanel extends JPanel implements KeyListener, MouseListener, Pla
             myPlayer.setY(newY);
             sendPlayerUpdate();
         }
-        
+
         // 만료된 메소 획득 메시지 제거
         mesosGainMessages.removeIf(msg -> !msg.isAlive());
-        
+
         repaint();
     }
 
@@ -222,7 +222,7 @@ public class GamePanel extends JPanel implements KeyListener, MouseListener, Pla
         if (newBgPath != null) {
             setBackgroundImage(newBgPath);
         }
-        
+
         // 맵별 땅 높이 설정
         Player myPlayer = getMyPlayer();
         if (myPlayer != null) {
@@ -235,60 +235,62 @@ public class GamePanel extends JPanel implements KeyListener, MouseListener, Pla
                 groundY = 475; // 기본값
             }
         }
-        
+
         // 플레이어 애니메이터 업데이트
         updatePlayerAnimators();
-        
+
         // 인벤토리와 메소 업데이트
         if (inventoryPanel != null) {
             if (myPlayer != null) {
                 // 플레이어 인벤토리로 업데이트
                 inventoryPanel.updatePlayer(myPlayer);
-                
+
                 // 장비 창 업데이트
                 if (equipPanel != null) {
                     equipPanel.updatePlayer(myPlayer);
                 }
-                
+
                 // 스텟 창 업데이트
                 if (statPanel != null) {
                     statPanel.updatePlayer(myPlayer);
                 }
             }
         }
-        
+
         this.errorMessage = null;
     }
-    
+
     public void updateMesos(int mesos) {
         // 메소 업데이트 (플레이어 객체를 통해 처리되므로 여기서는 인벤토리 패널만 업데이트)
         if (inventoryPanel != null) {
             inventoryPanel.setMesos(mesos);
         }
     }
-    
+
     /**
      * 메소 획득 메시지를 추가합니다.
+     * 
      * @param amount 획득한 메소 양
-     * @param x 화면 X 좌표
-     * @param y 화면 Y 좌표
+     * @param x      화면 X 좌표
+     * @param y      화면 Y 좌표
      */
     public void addMesosGainMessage(int amount, int x, int y) {
         mesosGainMessages.add(new MesosGainMessage(amount, x, y));
     }
-    
+
     private void updatePlayerAnimators() {
         long currentTime = System.currentTimeMillis();
-        
+
         for (Player player : players) {
             String playerId = player.getId();
             String characterFolderPath = player.getCharacterFolderPath(); // 착용 아이템 조합 경로
-            
+
             // 애니메이터가 없으면 생성
             if (!playerAnimators.containsKey(playerId)) {
                 CharacterAnimator animator = new CharacterAnimator(characterFolderPath);
                 playerAnimators.put(playerId, animator);
-                System.out.println("Created animator for player " + playerId + " with appearance " + characterFolderPath);
+                System.out
+                        .println("Created animator for player " + playerId + " with appearance " + characterFolderPath);
             } else {
                 // 착용 아이템이 변경되었는지 확인하고 애니메이터 업데이트
                 CharacterAnimator existingAnimator = playerAnimators.get(playerId);
@@ -296,19 +298,19 @@ public class GamePanel extends JPanel implements KeyListener, MouseListener, Pla
                     existingAnimator.updateCharacterAppearance(characterFolderPath);
                 }
             }
-            
+
             // 플레이어 상태에 따라 애니메이션 설정
             CharacterAnimator animator = playerAnimators.get(playerId);
-            
+
             // 내 플레이어이고 공격 애니메이션 중이면 attack 유지
-            if (playerId.equals(myPlayerId) && 
-                currentTime - lastAttackTime < ATTACK_ANIMATION_DURATION) {
+            if (playerId.equals(myPlayerId) &&
+                    currentTime - lastAttackTime < ATTACK_ANIMATION_DURATION) {
                 animator.setState("attack");
                 continue;
             }
-            
+
             String state = player.getState();
-            
+
             // 플레이어 상태에 따라 애니메이션 상태 설정
             if (state == null || state.isEmpty()) {
                 animator.setState("idle");
@@ -320,11 +322,9 @@ public class GamePanel extends JPanel implements KeyListener, MouseListener, Pla
                 animator.setState("idle");
             }
         }
-        
+
         // 삭제된 플레이어의 애니메이터 제거
-        playerAnimators.keySet().removeIf(playerId -> 
-            players.stream().noneMatch(p -> p.getId().equals(playerId))
-        );
+        playerAnimators.keySet().removeIf(playerId -> players.stream().noneMatch(p -> p.getId().equals(playerId)));
     }
 
     public void setBackgroundImage(String path) {
@@ -354,7 +354,7 @@ public class GamePanel extends JPanel implements KeyListener, MouseListener, Pla
         if (chatInput.isVisible() && chatInput.isFocusOwner()) {
             return;
         }
-        
+
         if (e.getKeyCode() == KeyEvent.VK_ENTER) {
             if (!chatInput.isVisible()) {
                 chatInput.setVisible(true);
@@ -371,7 +371,7 @@ public class GamePanel extends JPanel implements KeyListener, MouseListener, Pla
             repaint();
             return;
         }
-        
+
         // O 키: 장비 창 토글
         if (e.getKeyCode() == KeyEvent.VK_O) {
             equipPanel.toggleVisibility();
@@ -380,7 +380,7 @@ public class GamePanel extends JPanel implements KeyListener, MouseListener, Pla
             repaint();
             return;
         }
-        
+
         // S 키: 스텟 창 토글
         if (e.getKeyCode() == KeyEvent.VK_S) {
             statPanel.toggleVisibility();
@@ -421,13 +421,15 @@ public class GamePanel extends JPanel implements KeyListener, MouseListener, Pla
     }
 
     private final java.util.Map<String, Long> skillCooldowns = new java.util.concurrent.ConcurrentHashMap<>();
-    private final java.util.Map<String, Long> skillCooldownDurations = new java.util.HashMap<String, Long>() {{
-        put("skill1", 2000L);
-        put("skill2", 3000L);
-        put("skill3", 5000L);
-        put("skill4", 4000L);
-    }};
-    
+    private final java.util.Map<String, Long> skillCooldownDurations = new java.util.HashMap<String, Long>() {
+        {
+            put("skill1", 2000L);
+            put("skill2", 3000L);
+            put("skill3", 5000L);
+            put("skill4", 4000L);
+        }
+    };
+
     private long lastAttackTime = 0;
     private static final long ATTACK_ANIMATION_DURATION = 400; // 공격 애니메이션 지속 시간 (밀리초)
 
@@ -457,7 +459,7 @@ public class GamePanel extends JPanel implements KeyListener, MouseListener, Pla
                 skillType, direction);
         networkHandler.sendMessage(skillMsg);
         System.out.println("Skill used: " + skillType + " in direction: " + direction);
-        
+
         // 공격 애니메이션 트리거
         lastAttackTime = currentTime;
         CharacterAnimator myAnimator = playerAnimators.get(myPlayerId);
@@ -474,14 +476,14 @@ public class GamePanel extends JPanel implements KeyListener, MouseListener, Pla
 
         // Render XP Bar
         renderXPBar(g);
-        
+
         // Render Cooldown UI
         renderCooldownUI(g);
-        
+
         // Render Mesos Gain Messages
         renderMesosGainMessages(g);
     }
-    
+
     /**
      * 화면 상단에 XP 바와 레벨을 렌더링합니다.
      */
@@ -490,55 +492,54 @@ public class GamePanel extends JPanel implements KeyListener, MouseListener, Pla
         if (myPlayer == null) {
             return;
         }
-        
+
         Graphics2D g2d = (Graphics2D) g.create();
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        
-        int barX = 100; // XP 바 시작 X 위치 (레벨 표시 오른쪽)
+
+        int barX = 60; // XP 바 시작 X 위치 (레벨 표시 오른쪽)
         int barY = 10; // 화면 상단
         int barWidth = 300; // XP 바 너비
         int barHeight = 25; // XP 바 높이
-        
+
         int level = myPlayer.getLevel();
         int xp = myPlayer.getXp();
         int maxXp = myPlayer.getMaxXp();
-        
+
         // 레벨 표시 (XP 바 왼쪽)
         g2d.setFont(new Font("맑은 고딕", Font.BOLD, 18));
         g2d.setColor(Color.WHITE);
         String levelText = "Lv." + level;
         FontMetrics fm = g2d.getFontMetrics();
-        int levelTextWidth = fm.stringWidth(levelText);
-        int levelTextX = barX - levelTextWidth - 10;
+        // int levelTextWidth = fm.stringWidth(levelText); // unused
+        int levelTextX = 10; // 화면 왼쪽 끝
         int levelTextY = barY + barHeight / 2 + fm.getAscent() / 2 - 2;
         g2d.drawString(levelText, levelTextX, levelTextY);
-        
+
         // XP 바 배경 (검은색 테두리)
         g2d.setColor(Color.BLACK);
         g2d.fillRect(barX - 2, barY - 2, barWidth + 4, barHeight + 4);
-        
+
         // XP 바 배경 (어두운 회색)
         g2d.setColor(new Color(50, 50, 50));
         g2d.fillRect(barX, barY, barWidth, barHeight);
-        
+
         // XP 바 채우기 (녹색 그라데이션)
         if (maxXp > 0) {
             int filledWidth = (int) ((double) xp / maxXp * barWidth);
             if (filledWidth > 0) {
                 // 그라데이션 효과
                 GradientPaint gradient = new GradientPaint(
-                    barX, barY, new Color(50, 200, 50),
-                    barX, barY + barHeight, new Color(30, 150, 30)
-                );
+                        barX, barY, new Color(50, 200, 50),
+                        barX, barY + barHeight, new Color(30, 150, 30));
                 g2d.setPaint(gradient);
                 g2d.fillRect(barX, barY, filledWidth, barHeight);
-                
+
                 // XP 바 하이라이트 (상단)
                 g2d.setColor(new Color(100, 255, 100, 100));
                 g2d.fillRect(barX, barY, filledWidth, barHeight / 3);
             }
         }
-        
+
         // XP 바 텍스트 (현재/최대)
         g2d.setColor(Color.WHITE);
         g2d.setFont(new Font("맑은 고딕", Font.BOLD, 12));
@@ -547,57 +548,59 @@ public class GamePanel extends JPanel implements KeyListener, MouseListener, Pla
         int xpTextX = barX + (barWidth - xpFm.stringWidth(xpText)) / 2;
         int xpTextY = barY + barHeight / 2 + xpFm.getAscent() / 2 - 2;
         g2d.drawString(xpText, xpTextX, xpTextY);
-        
+
         g2d.dispose();
     }
-    
+
     /**
      * 메소 획득 메시지를 화면에 렌더링합니다.
      */
     private void renderMesosGainMessages(Graphics g) {
         Graphics2D g2d = (Graphics2D) g.create();
-        
+
         for (MesosGainMessage msg : mesosGainMessages) {
-            if (!msg.isAlive()) continue;
-            
+            if (!msg.isAlive())
+                continue;
+
             float alpha = msg.getAlpha();
             int x = msg.getX();
             int y = msg.getCurrentY();
             int amount = msg.getAmount();
-            
+
             // 투명도 설정
             g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha));
-            
+
             // 금색 동전 이미지 로드
             Image coinImage = SpriteManager.getSprite("coin");
             if (coinImage == null) {
                 coinImage = SpriteManager.getSpriteByPath("../img/tabler_coin.png");
             }
-            
+
             // 동전 이미지 그리기
             if (coinImage != null) {
                 int coinSize = 24;
                 g2d.drawImage(coinImage, x, y - coinSize / 2, coinSize, coinSize, null);
                 x += coinSize + 5; // 동전 오른쪽에 텍스트 표시
             }
-            
+
             // 메소 양 텍스트 그리기
             g2d.setFont(new Font("Arial", Font.BOLD, 18));
-            
+
             // 텍스트 그림자 효과
-            g2d.setColor(new Color(0, 0, 0, (int)(alpha * 100)));
+            g2d.setColor(new Color(0, 0, 0, (int) (alpha * 100)));
             g2d.drawString("+" + amount, x + 2, y + 2);
-            
-            g2d.setColor(new Color(255, 215, 0, (int)(alpha * 255))); // 금색
+
+            g2d.setColor(new Color(255, 215, 0, (int) (alpha * 255))); // 금색
             g2d.drawString("+" + amount, x, y);
         }
-        
+
         g2d.dispose();
     }
 
     private void renderCooldownUI(Graphics g) {
         int startX = 10;
-        int y = getHeight() - 60;
+        // Level Bar (Y=10, H=25) + Padding (5) -> Start Y = 40
+        int y = 45;
         int size = 50;
         int spacing = 60;
 
@@ -616,14 +619,14 @@ public class GamePanel extends JPanel implements KeyListener, MouseListener, Pla
 
     private void renderSingleSkillCooldown(Graphics g, String skillType, String keyBind, int x, int y, int size) {
         Graphics2D g2d = (Graphics2D) g.create();
-        
+
         // 스킬 아이콘 이미지 로드
         Image skillIcon = SpriteManager.getSprite(skillType + "_icon");
-        
+
         // 배경 그리기 (검은색 테두리)
         g2d.setColor(Color.BLACK);
         g2d.fillRect(x - 1, y - 1, size + 2, size + 2);
-        
+
         // 스킬 이미지를 배경으로 그리기
         if (skillIcon != null) {
             // 스킬 이미지를 슬롯 크기에 맞게 그리기
@@ -633,7 +636,7 @@ public class GamePanel extends JPanel implements KeyListener, MouseListener, Pla
             g2d.setColor(Color.GRAY);
             g2d.fillRect(x, y, size, size);
         }
-        
+
         // 쿨다운 체크
         boolean onCooldown = false;
         if (skillCooldowns.containsKey(skillType)) {
@@ -645,10 +648,10 @@ public class GamePanel extends JPanel implements KeyListener, MouseListener, Pla
                 // 쿨다운 중일 때 어둡게 표시
                 g2d.setColor(new Color(0, 0, 0, 150)); // 반투명 검은색 오버레이
                 g2d.fillRect(x, y, size, size);
-                
+
                 // 쿨다운 시간 표시
                 long remainingTime = cooldownDuration - (now - lastUsed);
-                
+
                 // 쿨다운 시간 텍스트 (초 단위)
                 g2d.setColor(Color.WHITE);
                 g2d.setFont(new Font("Arial", Font.BOLD, 12));
@@ -657,7 +660,7 @@ public class GamePanel extends JPanel implements KeyListener, MouseListener, Pla
                 int textX = x + (size - fm.stringWidth(cooldownText)) / 2;
                 int textY = y + size / 2 + fm.getAscent() / 2 - 2;
                 g2d.drawString(cooldownText, textX, textY);
-                
+
                 // 시계가 돌아가는 애니메이션 (기존 코드)
                 long elapsed = now - lastUsed;
                 int arc = (int) (360 * (1.0 - (double) elapsed / cooldownDuration));
@@ -665,7 +668,7 @@ public class GamePanel extends JPanel implements KeyListener, MouseListener, Pla
                 g2d.fillArc(x, y, size, size, 90, arc);
             }
         }
-        
+
         // 키바인드 텍스트 (왼쪽 상단 모서리)
         if (!onCooldown) {
             g2d.setFont(new Font("Arial", Font.BOLD, 14));
@@ -675,12 +678,12 @@ public class GamePanel extends JPanel implements KeyListener, MouseListener, Pla
             g2d.setColor(Color.WHITE);
             g2d.drawString(keyBind, x + 3, y + 17);
         }
-        
+
         // 테두리
         g2d.setColor(Color.WHITE);
         g2d.setStroke(new java.awt.BasicStroke(2));
         g2d.drawRect(x, y, size, size);
-        
+
         g2d.dispose();
     }
 
@@ -717,26 +720,30 @@ public class GamePanel extends JPanel implements KeyListener, MouseListener, Pla
     public void mousePressed(MouseEvent e) {
         // 패널이 클릭된 경우가 아니면 포커스를 GamePanel로 설정
         Component clickedComponent = SwingUtilities.getDeepestComponentAt(this, e.getX(), e.getY());
-        if (clickedComponent == this || clickedComponent == null || 
-            (clickedComponent != chatInput && clickedComponent != chatArea && 
-             !(clickedComponent instanceof JButton))) {
+        if (clickedComponent == this || clickedComponent == null ||
+                (clickedComponent != chatInput && clickedComponent != chatArea &&
+                        !(clickedComponent instanceof JButton))) {
             requestFocusInWindow();
         }
     }
 
     @Override
-    public void mouseReleased(MouseEvent e) {}
+    public void mouseReleased(MouseEvent e) {
+    }
 
     @Override
-    public void mouseEntered(MouseEvent e) {}
+    public void mouseEntered(MouseEvent e) {
+    }
 
     @Override
-    public void mouseExited(MouseEvent e) {}
+    public void mouseExited(MouseEvent e) {
+    }
 
     @Override
     public void pickupItem() {
         Player myPlayer = getMyPlayer();
-        if (myPlayer == null) return;
+        if (myPlayer == null)
+            return;
 
         // 인벤토리가 가득 찼는지 확인
         if (inventory.isFull()) {
@@ -754,9 +761,8 @@ public class GamePanel extends JPanel implements KeyListener, MouseListener, Pla
             if (distance <= PICKUP_RANGE) {
                 // 서버에 아이템 픽업 요청
                 String msg = String.format(
-                    "{\"type\":\"PICKUP_ITEM\",\"payload\":{\"itemId\":\"%s\"}}",
-                    item.getId()
-                );
+                        "{\"type\":\"PICKUP_ITEM\",\"payload\":{\"itemId\":\"%s\"}}",
+                        item.getId());
                 networkHandler.sendMessage(msg);
                 System.out.println("Requested pickup for item: " + item.getId());
                 break; // 한 번에 하나만 습득
@@ -778,40 +784,37 @@ public class GamePanel extends JPanel implements KeyListener, MouseListener, Pla
             System.out.println("Failed to add item: inventory full");
         }
     }
-    
+
     private void equipItem(common.item.Item item) {
         if (item == null || networkHandler == null) {
             return;
         }
-        
+
         // 아이템 타입을 장비 슬롯으로 매핑
-        common.util.ItemSlotMapper.EquipmentSlot slot = 
-            common.util.ItemSlotMapper.getEquipmentSlot(item.getType());
-        
+        common.util.ItemSlotMapper.EquipmentSlot slot = common.util.ItemSlotMapper.getEquipmentSlot(item.getType());
+
         if (slot == null) {
             System.out.println("This item cannot be equipped: " + item.getType());
             return;
         }
-        
+
         // 서버에 착용 요청 전송
         String msg = String.format(
-            "{\"type\":\"EQUIP_ITEM\",\"payload\":{\"itemId\":\"%s\",\"slot\":\"%s\"}}",
-            item.getId(), slot.name()
-        );
+                "{\"type\":\"EQUIP_ITEM\",\"payload\":{\"itemId\":\"%s\",\"slot\":\"%s\"}}",
+                item.getId(), slot.name());
         networkHandler.sendMessage(msg);
         System.out.println("Requested equip item: " + item.getType() + " to slot: " + slot.name());
     }
-    
+
     private void unequipItem(common.util.ItemSlotMapper.EquipmentSlot slot) {
         if (slot == null || networkHandler == null) {
             return;
         }
-        
+
         // 서버에 해제 요청 전송
         String msg = String.format(
-            "{\"type\":\"UNEQUIP_ITEM\",\"payload\":{\"slot\":\"%s\"}}",
-            slot.name()
-        );
+                "{\"type\":\"UNEQUIP_ITEM\",\"payload\":{\"slot\":\"%s\"}}",
+                slot.name());
         networkHandler.sendMessage(msg);
         System.out.println("Requested unequip from slot: " + slot.name());
     }

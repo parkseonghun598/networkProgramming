@@ -2,6 +2,7 @@ package server.map;
 
 import common.ImagePath;
 import common.map.Portal;
+import common.monster.Dragon;
 import common.monster.GreenSlime;
 import common.npc.NPC;
 
@@ -46,7 +47,7 @@ public class MapCreator {
                 "bossMap",
                 ImagePath.BOSSBG_IMAGE_PATH,
                 5,
-                GreenSlime::new,
+                Dragon::new,
                 List.of(toHenesys),
                 null); // NPC 없음
     }
