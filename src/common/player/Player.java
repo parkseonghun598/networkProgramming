@@ -17,6 +17,9 @@ public class Player {
     private String characterType = "defaultWarrior"; // 캐릭터 스킨
     private List<Item> inventory = new ArrayList<>(); // 인벤토리
     private int mesos = 0; // 메소 (게임 화폐)
+    private int level = 1; // 레벨 (1~5)
+    private int xp = 0; // 현재 경험치
+    private int maxXp = 100; // 레벨업에 필요한 경험치
     
     // 착용 아이템 (캐릭터 외형에 영향)
     private String equippedWeapon = "none"; // 무기
@@ -127,6 +130,57 @@ public class Player {
             this.mesos -= amount;
             return true;
         }
+        return false;
+    }
+    
+    // 레벨 관련 getter/setter
+    public int getLevel() {
+        return level;
+    }
+    
+    public void setLevel(int level) {
+        // 최대 레벨 5로 제한
+        this.level = Math.min(Math.max(1, level), 5);
+    }
+    
+    public int getXp() {
+        return xp;
+    }
+    
+    public void setXp(int xp) {
+        this.xp = Math.max(0, xp);
+    }
+    
+    public int getMaxXp() {
+        return maxXp;
+    }
+    
+    public void setMaxXp(int maxXp) {
+        this.maxXp = maxXp;
+    }
+    
+    /**
+     * 경험치를 추가하고 레벨업 여부를 반환합니다
+     * @param amount 추가할 경험치
+     * @return 레벨업했으면 true
+     */
+    public boolean addXp(int amount) {
+        this.xp += amount;
+        
+        // 레벨업 체크
+        if (this.xp >= this.maxXp && this.level < 5) {
+            this.xp -= this.maxXp;
+            this.level++;
+            // 다음 레벨업에 필요한 경험치 증가 (레벨마다 +50)
+            this.maxXp = 100 + (this.level - 1) * 50;
+            return true;
+        }
+        
+        // 최대 레벨이면 경험치를 maxXp로 제한
+        if (this.level >= 5) {
+            this.xp = Math.min(this.xp, this.maxXp);
+        }
+        
         return false;
     }
 

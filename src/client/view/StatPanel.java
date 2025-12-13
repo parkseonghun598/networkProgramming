@@ -1,6 +1,7 @@
 package client.view;
 
 import common.player.Player;
+import common.util.StatCalculator;
 
 import javax.swing.*;
 import java.awt.*;
@@ -154,105 +155,18 @@ public class StatPanel extends JPanel {
      * 플레이어의 스텟을 계산합니다 (기본 스텟 + 장비 보너스)
      */
     private PlayerStats calculateStats(Player player) {
-        // 기본 스텟
-        int baseStr = 10;
-        int baseDex = 10;
-        int baseInt = 10;
-        int baseLuk = 10;
-        int baseHp = 100;
-        int baseMp = 50;
-        int baseAttack = 10;
-        int baseDefense = 5;
-        
-        // 장비 보너스 계산
-        EquipmentStatBonus bonus = getEquipmentBonus(player);
+        StatCalculator.PlayerStats stats = StatCalculator.calculateAllStats(player);
         
         return new PlayerStats(
-            baseStr + bonus.str,
-            baseDex + bonus.dex,
-            baseInt + bonus.intelligence,
-            baseLuk + bonus.luk,
-            baseHp + bonus.hp,
-            baseMp + bonus.mp,
-            baseAttack + bonus.attack,
-            baseDefense + bonus.defense
+            stats.getStr(),
+            stats.getDex(),
+            stats.getInt(),
+            stats.getLuk(),
+            stats.getHp(),
+            stats.getMp(),
+            stats.getAttack(),
+            stats.getDefense()
         );
-    }
-    
-    /**
-     * 착용한 장비의 스텟 보너스를 계산합니다
-     */
-    private EquipmentStatBonus getEquipmentBonus(Player player) {
-        EquipmentStatBonus bonus = new EquipmentStatBonus();
-        
-        // 무기 보너스
-        addItemBonus(bonus, player.getEquippedWeapon());
-        // 모자 보너스
-        addItemBonus(bonus, player.getEquippedHat());
-        // 상의 보너스
-        addItemBonus(bonus, player.getEquippedTop());
-        // 하의 보너스
-        addItemBonus(bonus, player.getEquippedBottom());
-        // 장갑 보너스
-        addItemBonus(bonus, player.getEquippedGloves());
-        // 신발 보너스
-        addItemBonus(bonus, player.getEquippedShoes());
-        
-        return bonus;
-    }
-    
-    private void addItemBonus(EquipmentStatBonus bonus, String itemType) {
-        if (itemType == null || itemType.equals("none")) {
-            return;
-        }
-        
-        // 장비별 스텟 보너스 정의
-        switch (itemType) {
-            case "defaultWeapon":
-                bonus.attack += 5;
-                break;
-            case "bigWeapon":
-                bonus.attack += 15;
-                bonus.str += 5;
-                break;
-            case "blackHat":
-                bonus.defense += 3;
-                bonus.hp += 20;
-                break;
-            case "blueHat":
-                bonus.defense += 2;
-                bonus.mp += 10;
-                break;
-            case "brownTop":
-                bonus.defense += 5;
-                bonus.hp += 30;
-                break;
-            case "puppleTop":
-                bonus.defense += 8;
-                bonus.hp += 50;
-                bonus.intelligence += 3;
-                break;
-            case "blackBottom":
-                bonus.defense += 4;
-                bonus.hp += 25;
-                break;
-            case "defaultTop":
-                bonus.defense += 2;
-                bonus.hp += 10;
-                break;
-            case "defaultBottom":
-                bonus.defense += 2;
-                bonus.hp += 10;
-                break;
-            case "glove":
-                bonus.defense += 1;
-                bonus.dex += 2;
-                break;
-            case "shoes":
-                bonus.defense += 1;
-                bonus.dex += 1;
-                break;
-        }
     }
     
     /**
@@ -292,20 +206,6 @@ public class StatPanel extends JPanel {
             return str > 10 || dex > 10 || intelligence > 10 || luk > 10 || 
                    hp > 100 || mp > 50 || attack > 10 || defense > 5;
         }
-    }
-    
-    /**
-     * 장비 스텟 보너스 클래스
-     */
-    private static class EquipmentStatBonus {
-        int str = 0;
-        int dex = 0;
-        int intelligence = 0;
-        int luk = 0;
-        int hp = 0;
-        int mp = 0;
-        int attack = 0;
-        int defense = 0;
     }
     
     public void toggleVisibility() {

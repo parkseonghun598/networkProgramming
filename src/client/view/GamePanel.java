@@ -460,11 +460,83 @@ public class GamePanel extends JPanel implements KeyListener, MouseListener, Pla
         GameRenderer.render(g, background, errorMessage, monsters, skills, players, portals, npcs, items,
                 myPlayerId, playerAnimators, getWidth(), getHeight());
 
+        // Render XP Bar
+        renderXPBar(g);
+        
         // Render Cooldown UI
         renderCooldownUI(g);
         
         // Render Mesos Gain Messages
         renderMesosGainMessages(g);
+    }
+    
+    /**
+     * 화면 상단에 XP 바와 레벨을 렌더링합니다.
+     */
+    private void renderXPBar(Graphics g) {
+        Player myPlayer = getMyPlayer();
+        if (myPlayer == null) {
+            return;
+        }
+        
+        Graphics2D g2d = (Graphics2D) g.create();
+        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        
+        int barX = 100; // XP 바 시작 X 위치 (레벨 표시 오른쪽)
+        int barY = 10; // 화면 상단
+        int barWidth = 300; // XP 바 너비
+        int barHeight = 25; // XP 바 높이
+        
+        int level = myPlayer.getLevel();
+        int xp = myPlayer.getXp();
+        int maxXp = myPlayer.getMaxXp();
+        
+        // 레벨 표시 (XP 바 왼쪽)
+        g2d.setFont(new Font("맑은 고딕", Font.BOLD, 18));
+        g2d.setColor(Color.WHITE);
+        String levelText = "Lv." + level;
+        FontMetrics fm = g2d.getFontMetrics();
+        int levelTextWidth = fm.stringWidth(levelText);
+        int levelTextX = barX - levelTextWidth - 10;
+        int levelTextY = barY + barHeight / 2 + fm.getAscent() / 2 - 2;
+        g2d.drawString(levelText, levelTextX, levelTextY);
+        
+        // XP 바 배경 (검은색 테두리)
+        g2d.setColor(Color.BLACK);
+        g2d.fillRect(barX - 2, barY - 2, barWidth + 4, barHeight + 4);
+        
+        // XP 바 배경 (어두운 회색)
+        g2d.setColor(new Color(50, 50, 50));
+        g2d.fillRect(barX, barY, barWidth, barHeight);
+        
+        // XP 바 채우기 (녹색 그라데이션)
+        if (maxXp > 0) {
+            int filledWidth = (int) ((double) xp / maxXp * barWidth);
+            if (filledWidth > 0) {
+                // 그라데이션 효과
+                GradientPaint gradient = new GradientPaint(
+                    barX, barY, new Color(50, 200, 50),
+                    barX, barY + barHeight, new Color(30, 150, 30)
+                );
+                g2d.setPaint(gradient);
+                g2d.fillRect(barX, barY, filledWidth, barHeight);
+                
+                // XP 바 하이라이트 (상단)
+                g2d.setColor(new Color(100, 255, 100, 100));
+                g2d.fillRect(barX, barY, filledWidth, barHeight / 3);
+            }
+        }
+        
+        // XP 바 텍스트 (현재/최대)
+        g2d.setColor(Color.WHITE);
+        g2d.setFont(new Font("맑은 고딕", Font.BOLD, 12));
+        String xpText = xp + " / " + maxXp;
+        FontMetrics xpFm = g2d.getFontMetrics();
+        int xpTextX = barX + (barWidth - xpFm.stringWidth(xpText)) / 2;
+        int xpTextY = barY + barHeight / 2 + xpFm.getAscent() / 2 - 2;
+        g2d.drawString(xpText, xpTextX, xpTextY);
+        
+        g2d.dispose();
     }
     
     /**

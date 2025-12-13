@@ -164,6 +164,30 @@ public class GameStateParser {
                     // Keep default
                 }
             }
+            int level = 1; // default
+            if (playerStr.contains("\"level\":")) {
+                try {
+                    level = Integer.parseInt(playerStr.split("\"level\":")[1].split(",")[0]);
+                } catch (Exception e) {
+                    // Keep default
+                }
+            }
+            int xp = 0; // default
+            if (playerStr.contains("\"xp\":")) {
+                try {
+                    xp = Integer.parseInt(playerStr.split("\"xp\":")[1].split(",")[0]);
+                } catch (Exception e) {
+                    // Keep default
+                }
+            }
+            int maxXp = 100; // default
+            if (playerStr.contains("\"maxXp\":")) {
+                try {
+                    maxXp = Integer.parseInt(playerStr.split("\"maxXp\":")[1].split(",")[0]);
+                } catch (Exception e) {
+                    // Keep default
+                }
+            }
             
             // Parse equipped items
             String equippedWeapon = "none"; // default
@@ -207,6 +231,9 @@ public class GameStateParser {
             player.setMapId(mapId);
             player.setCharacterType(characterType);
             player.setMesos(mesos);
+            player.setLevel(level);
+            player.setXp(xp);
+            player.setMaxXp(maxXp);
             
             // Set equipped items
             player.setEquippedWeapon(equippedWeapon);

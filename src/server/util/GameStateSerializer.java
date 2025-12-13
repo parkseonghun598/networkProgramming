@@ -76,8 +76,8 @@ public class GameStateSerializer {
             String equippedGloves = p.getEquippedGloves() != null ? p.getEquippedGloves() : "none";
             String equippedShoes = p.getEquippedShoes() != null ? p.getEquippedShoes() : "none";
             
-            sb.append(String.format("{\"id\":\"%s\",\"username\":\"%s\",\"x\":%d,\"y\":%d,\"direction\":\"%s\",\"mapId\":\"%s\",\"characterType\":\"%s\",\"state\":\"%s\",\"mesos\":%d,\"equippedWeapon\":\"%s\",\"equippedHat\":\"%s\",\"equippedTop\":\"%s\",\"equippedBottom\":\"%s\",\"equippedGloves\":\"%s\",\"equippedShoes\":\"%s\"",
-                    p.getId(), username, p.getX(), p.getY(), directionStr, p.getMapId(), characterType, state, p.getMesos(), equippedWeapon, equippedHat, equippedTop, equippedBottom, equippedGloves, equippedShoes));
+            sb.append(String.format("{\"id\":\"%s\",\"username\":\"%s\",\"x\":%d,\"y\":%d,\"direction\":\"%s\",\"mapId\":\"%s\",\"characterType\":\"%s\",\"state\":\"%s\",\"mesos\":%d,\"level\":%d,\"xp\":%d,\"maxXp\":%d,\"equippedWeapon\":\"%s\",\"equippedHat\":\"%s\",\"equippedTop\":\"%s\",\"equippedBottom\":\"%s\",\"equippedGloves\":\"%s\",\"equippedShoes\":\"%s\"",
+                    p.getId(), username, p.getX(), p.getY(), directionStr, p.getMapId(), characterType, state, p.getMesos(), p.getLevel(), p.getXp(), p.getMaxXp(), equippedWeapon, equippedHat, equippedTop, equippedBottom, equippedGloves, equippedShoes));
             
             // Append inventory
             sb.append(",\"inventory\":[");

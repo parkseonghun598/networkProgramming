@@ -63,6 +63,14 @@ public class GameState {
                             + monster.getHp());
 
                     if (monster.getHp() <= 0) {
+                        // 몬스터 처치 시 경험치 추가
+                        int xpGain = 20; // 몬스터 처치 시 20 XP
+                        boolean leveledUp = player.addXp(xpGain);
+                        if (leveledUp) {
+                            System.out.println("Player " + player.getUsername() + " leveled up to level " + player.getLevel() + "!");
+                        }
+                        System.out.println("Player " + player.getUsername() + " gained " + xpGain + " XP. (Total: " + player.getXp() + "/" + player.getMaxXp() + ")");
+                        
                         // 몬스터 처치 시 아이템 드롭
                         dropItemsOnMonsterDeath(player.getMapId(), monster.getX(), monster.getY());
                         
