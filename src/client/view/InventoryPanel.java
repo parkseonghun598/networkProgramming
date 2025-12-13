@@ -33,6 +33,7 @@ public class InventoryPanel extends JPanel {
         this.player = null;
         setLayout(null);
         setOpaque(false);
+        setFocusable(false); // 키 입력을 가로채지 않도록 설정
         setBounds(200, 50, 172, 262); // 인벤토리 크기에 맞춤
 
         // Load inventory background

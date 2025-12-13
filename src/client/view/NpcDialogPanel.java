@@ -27,6 +27,7 @@ public class NpcDialogPanel extends JPanel {
         setLayout(null);
         setPreferredSize(new Dimension(700, 300));
         setBackground(new Color(240, 245, 255));
+        setFocusable(false); // 키 입력을 가로채지 않도록 설정
         setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createLineBorder(new Color(100, 100, 150), 3),
             BorderFactory.createEmptyBorder(10, 10, 10, 10)

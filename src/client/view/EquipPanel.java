@@ -69,6 +69,7 @@ public class EquipPanel extends JPanel {
         this.callback = callback;
         setLayout(null);
         setOpaque(false);
+        setFocusable(false); // 키 입력을 가로채지 않도록 설정
 
         // Load equipment inventory background
         try {

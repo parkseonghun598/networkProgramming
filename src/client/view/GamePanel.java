@@ -75,6 +75,7 @@ public class GamePanel extends JPanel implements KeyListener, MouseListener, Pla
 
         setPreferredSize(new Dimension(800, 600));
         setFocusable(true);
+        setRequestFocusEnabled(true);
         addKeyListener(this);
         addMouseListener(this);
         setLayout(null); // Use absolute positioning
@@ -349,6 +350,11 @@ public class GamePanel extends JPanel implements KeyListener, MouseListener, Pla
 
     @Override
     public void keyPressed(KeyEvent e) {
+        // 채팅 입력창이 활성화되어 있으면 게임 키 입력 무시
+        if (chatInput.isVisible() && chatInput.isFocusOwner()) {
+            return;
+        }
+        
         if (e.getKeyCode() == KeyEvent.VK_ENTER) {
             if (!chatInput.isVisible()) {
                 chatInput.setVisible(true);
@@ -360,6 +366,8 @@ public class GamePanel extends JPanel implements KeyListener, MouseListener, Pla
         // I 키: 인벤토리 토글
         if (e.getKeyCode() == KeyEvent.VK_I) {
             inventoryPanel.toggleVisibility();
+            // 패널 토글 후 포커스를 GamePanel로 유지
+            requestFocusInWindow();
             repaint();
             return;
         }
@@ -367,6 +375,8 @@ public class GamePanel extends JPanel implements KeyListener, MouseListener, Pla
         // E 키: 장비 창 토글
         if (e.getKeyCode() == KeyEvent.VK_E) {
             equipPanel.toggleVisibility();
+            // 패널 토글 후 포커스를 GamePanel로 유지
+            requestFocusInWindow();
             repaint();
             return;
         }
@@ -374,6 +384,8 @@ public class GamePanel extends JPanel implements KeyListener, MouseListener, Pla
         // S 키: 스텟 창 토글
         if (e.getKeyCode() == KeyEvent.VK_S) {
             statPanel.toggleVisibility();
+            // 패널 토글 후 포커스를 GamePanel로 유지
+            requestFocusInWindow();
             repaint();
             return;
         }
@@ -657,7 +669,15 @@ public class GamePanel extends JPanel implements KeyListener, MouseListener, Pla
     }
 
     @Override
-    public void mousePressed(MouseEvent e) {}
+    public void mousePressed(MouseEvent e) {
+        // 패널이 클릭된 경우가 아니면 포커스를 GamePanel로 설정
+        Component clickedComponent = SwingUtilities.getDeepestComponentAt(this, e.getX(), e.getY());
+        if (clickedComponent == this || clickedComponent == null || 
+            (clickedComponent != chatInput && clickedComponent != chatArea && 
+             !(clickedComponent instanceof JButton))) {
+            requestFocusInWindow();
+        }
+    }
 
     @Override
     public void mouseReleased(MouseEvent e) {}

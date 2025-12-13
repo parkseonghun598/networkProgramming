@@ -24,6 +24,7 @@ public class StatPanel extends JPanel {
     public StatPanel() {
         setLayout(null);
         setOpaque(false);
+        setFocusable(false); // 키 입력을 가로채지 않도록 설정
         setBounds(100, 100, PANEL_WIDTH, PANEL_HEIGHT);
         
         // 드래그 기능 추가
