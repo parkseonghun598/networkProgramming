@@ -1,7 +1,6 @@
 package client.view;
 
 import client.util.SpriteManager;
-import common.inventory.Inventory;
 import common.item.Item;
 
 import javax.imageio.ImageIO;
@@ -12,24 +11,23 @@ import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.Collections;
 
 public class InventoryPanel extends JPanel {
     private BufferedImage backgroundImage;
-    private Inventory inventory; // 로컬 인벤토리 (하위 호환성)
     private common.player.Player player; // 플레이어 객체 (플레이어 인벤토리 사용)
     private boolean isVisible = false;
     private int mesos = 0; // 현재 메소
     private Point initialClick; // 드래그 시작 위치
-    
+
     // 콜백 함수
     private InventoryPanelCallback callback;
-    
+
     public interface InventoryPanelCallback {
         void onItemEquip(Item item);
     }
 
-    public InventoryPanel(Inventory inventory) {
-        this.inventory = inventory;
+    public InventoryPanel() {
         this.player = null;
         setLayout(null);
         setOpaque(false);
@@ -65,10 +63,10 @@ public class InventoryPanel extends JPanel {
         int spacingX = 6;
         int spacingY = 6;
 
-        // 플레이어 인벤토리를 우선 사용, 없으면 로컬 인벤토리 사용
-        java.util.List<Item> items = (player != null && player.getInventory() != null) 
-            ? player.getInventory() 
-            : inventory.getItems();
+        // 플레이어 인벤토리 사용
+        java.util.List<Item> items = (player != null && player.getInventory() != null)
+            ? player.getInventory()
+            : Collections.emptyList();
         
         for (int i = 0; i < items.size() && i < 24; i++) {
             Item item = items.get(i);
@@ -201,10 +199,10 @@ public class InventoryPanel extends JPanel {
         int spacingX = 6; // 슬롯 간 가로 간격
         int spacingY = 6; // 슬롯 간 세로 간격
 
-        // 플레이어 인벤토리를 우선 사용, 없으면 로컬 인벤토리 사용
-        java.util.List<Item> items = (player != null && player.getInventory() != null) 
-            ? player.getInventory() 
-            : inventory.getItems();
+        // 플레이어 인벤토리 사용
+        java.util.List<Item> items = (player != null && player.getInventory() != null)
+            ? player.getInventory()
+            : Collections.emptyList();
         
         // 인벤토리가 비어있으면 그리기 중단
         if (items == null || items.isEmpty()) {

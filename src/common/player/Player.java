@@ -109,28 +109,12 @@ public class Player {
         this.inventory.add(item);
     }
 
-    public void removeItemFromInventory(String itemId) {
-        this.inventory.removeIf(item -> item.getId().equals(itemId));
-    }
-
     public int getMesos() {
         return mesos;
     }
 
     public void setMesos(int mesos) {
         this.mesos = mesos;
-    }
-
-    public void addMesos(int amount) {
-        this.mesos += amount;
-    }
-
-    public boolean removeMesos(int amount) {
-        if (this.mesos >= amount) {
-            this.mesos -= amount;
-            return true;
-        }
-        return false;
     }
     
     // 레벨 관련 getter/setter

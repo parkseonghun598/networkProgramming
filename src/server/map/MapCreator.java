@@ -36,11 +36,6 @@ public class MapCreator {
                 List.of(warriorNpc));
     }
 
-    public static GameMap Robby() {
-        // todo : 다른 맵
-        return null;
-    }
-
     public static GameMap BossMap() {
         Portal toHenesys = new Portal(50, 475, 100, 100, "hennesis", 650, 525);
         return new GameMap(

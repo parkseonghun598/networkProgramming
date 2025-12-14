@@ -6,7 +6,6 @@ import client.controller.NpcDialogHandler;
 import client.util.GameStateParser;
 import client.util.SpriteManager;
 import client.util.CharacterAnimator;
-import common.inventory.Inventory;
 import common.monster.Monster;
 import common.player.Player;
 import common.skills.Skill;
@@ -31,7 +30,6 @@ public class GamePanel extends JPanel implements KeyListener, MouseListener, Pla
     private InventoryPanel inventoryPanel;
     private EquipPanel equipPanel;
     private StatPanel statPanel;
-    private Inventory inventory;
     private String errorMessage;
     private String myPlayerId;
     private String username;
@@ -119,8 +117,7 @@ public class GamePanel extends JPanel implements KeyListener, MouseListener, Pla
         });
 
         // Initialize inventory
-        inventory = new Inventory();
-        inventoryPanel = new InventoryPanel(inventory);
+        inventoryPanel = new InventoryPanel();
         inventoryPanel.hide();
 
         // 인벤토리 아이템 착용 콜백 설정
@@ -746,8 +743,8 @@ public class GamePanel extends JPanel implements KeyListener, MouseListener, Pla
         if (myPlayer == null)
             return;
 
-        // 인벤토리가 가득 찼는지 확인
-        if (inventory.isFull()) {
+        // 인벤토리가 가득 찼는지 확인 (24칸 제한)
+        if (myPlayer.getInventory() != null && myPlayer.getInventory().size() >= 24) {
             System.out.println("Inventory is full!");
             return;
         }
@@ -778,11 +775,15 @@ public class GamePanel extends JPanel implements KeyListener, MouseListener, Pla
     }
 
     public void addItemToInventory(common.item.Item item) {
-        if (inventory.addItem(item)) {
-            System.out.println("Added item to inventory: " + item.getName());
-            inventoryPanel.updateInventory();
-        } else {
-            System.out.println("Failed to add item: inventory full");
+        Player myPlayer = getMyPlayer();
+        if (myPlayer != null && myPlayer.getInventory() != null) {
+            if (myPlayer.getInventory().size() < 24) {
+                myPlayer.addItemToInventory(item);
+                System.out.println("Added item to inventory: " + item.getName());
+                inventoryPanel.updateInventory();
+            } else {
+                System.out.println("Failed to add item: inventory full");
+            }
         }
     }
 
