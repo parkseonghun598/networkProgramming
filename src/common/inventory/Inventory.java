@@ -42,9 +42,5 @@ public class Inventory {
     public boolean isFull() {
         return items.size() >= MAX_SLOTS;
     }
-
-    public void clear() {
-        items.clear();
-    }
 }
 

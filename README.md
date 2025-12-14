@@ -170,9 +170,7 @@ src/
 
 │   │   ├── CharacterAnimator.java   # 캐릭터 애니메이션
 
-│   │   ├── SpriteManager.java       # 스프라이트 관리
-
-│   │   └── UserManager.java         # 사용자 정보 관리
+│   │   └── SpriteManager.java       # 스프라이트 관리
 
 │   └── view/                        # UI 뷰
 
@@ -184,9 +182,7 @@ src/
 
 │       ├── LoginFrame.java          # 로그인 창
 
-│       ├── LoginPanel.java          # 로그인 패널
-
-│       ├── CharacterSelectPanel.java# 캐릭터 선택 패널
+│       ├── LoginPanel.java          # 닉네임 입력 패널
 
 │       ├── InventoryPanel.java      # 인벤토리 UI
 
@@ -233,10 +229,6 @@ src/
     ├── player/
 
     │   └── Player.java              # 플레이어 데이터
-
-    ├── user/
-
-    │   └── User.java                # 사용자 계정 정보
 
     ├── monster/
 
@@ -350,8 +342,6 @@ src/
 
 | `SpriteManager` | 스프라이트 이미지 로드 및 관리 |
 
-| `UserManager` | 사용자 정보 관리 |
-
 | `GameFrame` | 메인 게임 윈도우 |
 
 | `GamePanel` | 게임 화면 렌더링 및 입력 처리 (핵심 UI) |
@@ -360,9 +350,7 @@ src/
 
 | `LoginFrame` | 로그인 윈도우 |
 
-| `LoginPanel` | 로그인/회원가입 UI |
-
-| `CharacterSelectPanel` | 캐릭터 선택 화면 |
+| `LoginPanel` | 닉네임 입력 UI |
 
 | `InventoryPanel` | 인벤토리 UI (I키) |
 
@@ -385,8 +373,6 @@ src/
 |------|------|
 
 | `Player` | 플레이어 데이터 (이름, 위치, 맵, 스탯, 장비, 인벤토리) |
-
-| `User` | 사용자 계정 정보 (username, password) |
 
 | `Monster` | 몬스터 추상클래스 (HP, 위치, 이동, 충돌) |
 
@@ -438,9 +424,9 @@ src/
 
 ### 계정 시스템
 
-- 로그인/회원가입 기능
+- 닉네임 입력 후 바로 게임 시작
 
-- 캐릭터 선택 (defaultWarrior 타입)
+- 기본 캐릭터 타입: defaultWarrior
 
 
 

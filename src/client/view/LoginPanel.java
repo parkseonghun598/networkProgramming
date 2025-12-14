@@ -1,7 +1,5 @@
 package client.view;
 
-import common.user.User;
-
 import javax.swing.*;
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -18,7 +16,7 @@ public class LoginPanel extends JPanel {
     private BufferedImage backgroundImage;
 
     public interface LoginCallback {
-        void onLoginSuccess(User user);
+        void onLoginSuccess(String username);
     }
 
     public LoginPanel(LoginCallback callback) {
@@ -148,8 +146,7 @@ public class LoginPanel extends JPanel {
             return;
         }
 
-        // Create user with nickname (no password needed for simple login)
-        User user = new User(nickname, "", "defaultWarrior");
-        callback.onLoginSuccess(user);
+        // Call callback with just the nickname
+        callback.onLoginSuccess(nickname);
     }
 }

@@ -1,17 +1,15 @@
 package client.view;
 
-import common.user.User;
-
 import javax.swing.JFrame;
 
 public class GameFrame extends JFrame {
 
-    public GameFrame(User user) {
-        setTitle("Mini MapleStory - " + user.getUsername());
+    public GameFrame(String username, String characterType) {
+        setTitle("Mini MapleStory - " + username);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setResizable(false);
 
-        GamePanel gamePanel = new GamePanel(user);
+        GamePanel gamePanel = new GamePanel(username, characterType);
         this.add(gamePanel);
         this.pack(); // Adjust frame size to fit the panel
 

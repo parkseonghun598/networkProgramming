@@ -10,7 +10,6 @@ import common.inventory.Inventory;
 import common.monster.Monster;
 import common.player.Player;
 import common.skills.Skill;
-import common.user.User;
 
 import javax.swing.*;
 import java.awt.*;
@@ -35,7 +34,8 @@ public class GamePanel extends JPanel implements KeyListener, MouseListener, Pla
     private Inventory inventory;
     private String errorMessage;
     private String myPlayerId;
-    private User currentUser;
+    private String username;
+    private String characterType;
 
     private final List<Player> players;
     private final List<Monster> monsters;
@@ -62,8 +62,9 @@ public class GamePanel extends JPanel implements KeyListener, MouseListener, Pla
     private JTextField chatInput;
     private JScrollPane chatScrollPane;
 
-    public GamePanel(User user) {
-        this.currentUser = user;
+    public GamePanel(String username, String characterType) {
+        this.username = username;
+        this.characterType = characterType;
         this.players = new CopyOnWriteArrayList<>();
         this.monsters = new CopyOnWriteArrayList<>();
         this.skills = new CopyOnWriteArrayList<>();
@@ -209,11 +210,11 @@ public class GamePanel extends JPanel implements KeyListener, MouseListener, Pla
     }
 
     public String getUsername() {
-        return currentUser != null ? currentUser.getUsername() : null;
+        return username;
     }
 
     public String getCharacterType() {
-        return currentUser != null ? currentUser.getCharacterType() : "defaultWarrior";
+        return characterType;
     }
 
     public void updateGameState(String jsonState) {

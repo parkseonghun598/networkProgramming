@@ -1,7 +1,5 @@
 package client.view;
 
-import common.user.User;
-
 import javax.swing.*;
 
 public class LoginFrame extends JFrame {
@@ -23,9 +21,8 @@ public class LoginFrame extends JFrame {
 
         loginPanel = new LoginPanel(new LoginPanel.LoginCallback() {
             @Override
-            public void onLoginSuccess(User user) {
-                user.setCharacterType("defaultWarrior");
-                openGameFrame(user);
+            public void onLoginSuccess(String username) {
+                openGameFrame(username);
             }
         });
 
@@ -35,9 +32,10 @@ public class LoginFrame extends JFrame {
         repaint();
     }
 
-    private void openGameFrame(User user) {
+    private void openGameFrame(String username) {
         SwingUtilities.invokeLater(() -> {
-            GameFrame gameFrame = new GameFrame(user);
+            String characterType = "defaultWarrior";
+            GameFrame gameFrame = new GameFrame(username, characterType);
             gameFrame.setVisible(true);
             LoginFrame.this.dispose();
         });
